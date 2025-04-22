@@ -1,0 +1,311 @@
+.nodes-container {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.nodes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    margin-top: 0px;
+}
+
+.nodes-header h1 {
+    margin-top: 0px;
+    font-size: 24px;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.search-container {
+    position: relative;
+    width: 140px;  /* Match the dropdown width */
+    flex-shrink: 0;
+}
+
+.search-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;  
+    width: 100%;
+    padding-left: 4px;
+    height: 28px;  /* Reduced from 36px */
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.node-select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;  /* Reduced from 14px */
+    padding: 6px 10px;  /* Adjusted padding */
+    height: 32px;  /* Reduced from 36px */
+    width: 140px;  /* Reduced from 180px */
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;  /* Adjusted position */
+    background-size: 10px;  /* Reduced from 12px */
+    padding-right: 28px;  /* Adjusted from 32px */
+}
+
+.node-select:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.node-select:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.node-count {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.header-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn {
+    padding: 6px 12px;  /* Reduced from 8px 16px */
+    border-radius: 6px;
+    font-size: 13px;  /* Reduced from 14px */
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    height: 32px;  /* Added to match other elements */
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.nodes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+    gap: 20px;
+}
+
+.node-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px;
+}
+
+.node-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.node-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.node-title h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge.status-healthy {
+    background: rgba(74, 222, 128, 0.2);
+    color: #4ade80;
+}
+
+.node-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-size: 16px;
+}
+
+.btn-icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.resource-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.metric {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.metric-label {
+    width: 50px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.metric-value {
+    width: 36px;
+    text-align: right;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 12px;
+}
+
+.node-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+}
+
+.info-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.info-value {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.node-conditions {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 16px;
+}
+
+.node-conditions h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.conditions-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.condition {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.condition-type {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.condition-status {
+    font-size: 13px;
+    font-weight: 500;
+}

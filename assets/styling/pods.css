@@ -1,0 +1,454 @@
+/* Pods container and header styles */
+.pods-container {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.pods-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.header-left h1 {
+    font-size: 24px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Search and select controls */
+.search-container {
+    position: relative;
+    width: 140px;
+    flex-shrink: 0;
+}
+
+.search-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    padding: 6px 10px;
+    width: 100%;
+    height: 32px;
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.namespace-select,
+.status-select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    padding: 6px 10px;
+    height: 32px;
+    width: 140px;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px;
+    padding-right: 28px;
+}
+
+.pod-count {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+/* Action buttons */
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Pods grid */
+.pods-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Pod card */
+.pod-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+.pod-header {
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.pod-header:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.pod-details {
+    padding: 0 12px 12px 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.expand-toggle {
+    margin-right: 8px;
+}
+
+/* Pod info */
+.pod-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.info-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 100px;
+}
+
+.info-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.info-value {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Status badges */
+.status-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+.status-running {
+    background: rgba(74, 222, 128, 0.2);
+    color: #4ade80;
+}
+
+.status-pending {
+    background: rgba(250, 204, 21, 0.2);
+    color: #facc15;
+}
+
+.status-failed {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.status-succeeded {
+    background: rgba(74, 222, 128, 0.2);
+    color: #4ade80;
+}
+
+.status-true {
+    color: #4ade80;
+}
+
+.status-false {
+    color: #ef4444;
+}
+
+/* Labels section */
+.labels-section {
+    margin: 0;
+}
+
+.labels-section h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 8px 0;
+}
+
+.labels-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.label {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.label-key {
+    color: rgba(255, 255, 255, 0.6);
+    margin-right: 4px;
+}
+
+.label-value {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Containers section */
+.containers-section {
+    margin: 0;
+}
+
+.containers-section h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 8px 0;
+}
+
+.containers-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.container-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.container-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.container-title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.container-title h5 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.container-image {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Resource metrics */
+.resource-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.metric {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.metric-label {
+    width: 45px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    min-width: 50px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.metric-value {
+    width: 80px;
+    text-align: right;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+/* Conditions section */
+.conditions-section {
+    margin: 0;
+}
+
+.conditions-section h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 8px 0;
+}
+
+.conditions-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.condition {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+    padding: 8px 12px;
+}
+
+.condition-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.condition-type {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.condition-status {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.condition-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.condition-reason {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.condition-time {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.pod-controls {
+    display: flex;
+    gap: 6px;
+    z-index: 1;
+}
+
+.pod-controls .btn-icon {
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.pod-controls .btn-icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.pod-header .pod-title {
+    flex: 1;
+    min-width: 0;
+    margin-right: 12px;
+}

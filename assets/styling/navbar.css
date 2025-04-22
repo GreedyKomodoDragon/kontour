@@ -1,0 +1,244 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+.layout-container {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+#sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 250px;
+  min-width: 250px;
+  height: 100vh;
+  background-color: rgba(255, 255, 255, 0.03);
+  color: #ffffff;
+  position: sticky;
+  top: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  padding: 24px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.sidebar-logo img {
+  width: 32px;
+  height: 32px;
+  margin-right: 12px;
+}
+
+.sidebar-logo span {
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.sidebar-links {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+  overflow-y: auto;
+}
+
+.nav-group {
+  display: flex;
+  flex-direction: column;
+  padding: 0 12px;
+  margin-bottom: 24px;
+}
+
+.nav-group-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 0 8px;
+  margin-bottom: 8px;
+  letter-spacing: 0.05em;
+}
+
+.sidebar-links a {
+  display: flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  font-size: 0.875rem;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  margin-bottom: 2px;
+}
+
+.sidebar-links a:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.sidebar-links a.active {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.sidebar-links a:hover::before {
+  opacity: 0.9;
+}
+
+.nav-pods {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 14px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.nav-pods:hover,
+.nav-pods:global(.active) {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.nav-pods::before {
+    content: "📦";
+    font-size: 16px;
+    margin-right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    opacity: 0.7;
+}
+
+.nav-overview::before {
+    content: "📊";
+    font-size: 16px;
+    margin-right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    opacity: 0.7;
+}
+
+.nav-nodes::before {
+    content: "🖥️";
+    font-size: 16px;
+    margin-right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    opacity: 0.7;
+}
+
+.nav-namespaces::before {
+    content: "📂";
+    font-size: 16px;
+    margin-right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    opacity: 0.7;
+}
+
+.nav-deployments::before {
+    content: "🚀";
+    font-size: 16px;
+    margin-right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    opacity: 0.7;
+}
+
+.nav-statefulsets::before {
+    content: "📚";
+    font-size: 16px;
+    margin-right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    opacity: 0.7;
+}
+
+.nav-daemonsets::before {
+    content: "🔄";
+    font-size: 16px;
+    margin-right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    opacity: 0.7;
+}
+
+.nav-services::before {
+    content: "🔌";
+    font-size: 16px;
+    margin-right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    opacity: 0.7;
+}
+
+.nav-ingress::before {
+    content: "🌐";
+    font-size: 16px;
+    margin-right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    opacity: 0.7;
+}
+
+.nav-pvcs::before {
+    content: "💾";
+    font-size: 16px;
+    margin-right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    opacity: 0.7;
+}
+
+.nav-configmaps::before {
+    content: "⚙️";
+    font-size: 16px;
+    margin-right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    opacity: 0.7;
+}
+
+.nav-secrets::before {
+    content: "🔒";
+    font-size: 16px;
+    margin-right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    opacity: 0.7;
+}
