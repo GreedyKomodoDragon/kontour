@@ -7,15 +7,18 @@
 
 .pods-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    align-items: center; /* Align items vertically */
     margin-bottom: 24px;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 16px; /* Add gap for wrapping */
 }
 
 .header-left {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
+    align-items: center; /* Align h1 and controls */
+    gap: 16px; /* Add gap between h1 and controls */
+    flex-wrap: wrap; /* Allow controls to wrap */
+    /* Removed flex-direction: column */
 }
 
 .header-left h1 {
@@ -23,6 +26,7 @@
     font-weight: 500;
     color: rgba(255, 255, 255, 0.9);
     margin: 0;
+    white-space: nowrap; /* Prevent h1 from wrapping */
 }
 
 .header-controls {
@@ -32,7 +36,7 @@
     flex-wrap: wrap;
 }
 
-/* Search and select controls */
+/* Search and select controls - Styles seem mostly consistent, ensure height/padding */
 .search-container {
     position: relative;
     width: 140px;
@@ -45,9 +49,10 @@
     border-radius: 6px;
     color: rgba(255, 255, 255, 0.9);
     font-size: 13px;
-    padding: 6px 10px;
+    padding: 6px 10px; /* Consistent padding */
     width: 100%;
-    height: 32px;
+    height: 32px; /* Consistent height */
+    box-sizing: border-box; /* Include padding/border in height */
     transition: all 0.2s ease;
 }
 
@@ -64,8 +69,8 @@
     border-radius: 6px;
     color: rgba(255, 255, 255, 0.9);
     font-size: 13px;
-    padding: 6px 10px;
-    height: 32px;
+    padding: 6px 10px; /* Consistent padding */
+    height: 32px; /* Consistent height */
     width: 140px;
     flex-shrink: 0;
     cursor: pointer;
@@ -75,50 +80,31 @@
     background-repeat: no-repeat;
     background-position: right 10px center;
     background-size: 10px;
-    padding-right: 28px;
+    padding-right: 28px; /* Space for arrow */
+    box-sizing: border-box; /* Include padding/border in height */
 }
+
+.namespace-select:focus,
+.status-select:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
 
 .pod-count {
     color: rgba(255, 255, 255, 0.6);
     font-size: 13px;
     white-space: nowrap;
+    padding-left: 6px; /* Add slight spacing */
 }
 
-/* Action buttons */
+/* Action buttons - Styles seem mostly consistent */
 .header-actions {
     display: flex;
     gap: 10px;
-}
-
-.btn {
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-    height: 32px;
-    display: inline-flex;
-    align-items: center;
-}
-
-.btn-primary {
-    background: #3b82f6;
-    color: white;
-}
-
-.btn-primary:hover {
-    background: #2563eb;
-}
-
-.btn-secondary {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-}
-
-.btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.15);
+    flex-shrink: 0; /* Prevent shrinking */
+    margin-left: auto; /* Push actions to the right */
 }
 
 /* Pods grid */
@@ -135,41 +121,56 @@
     background: rgba(255, 255, 255, 0.05);
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    overflow: hidden;
+    overflow: hidden; /* Keep this */
+    transition: background-color 0.2s ease; /* Add transition for hover */
 }
 
+.pod-card:hover {
+     background: rgba(255, 255, 255, 0.07); /* Slight highlight on hover */
+}
+
+
 .pod-header {
-    padding: 12px;
+    padding: 12px 16px; /* Adjust padding */
     display: flex;
     justify-content: space-between;
     align-items: center;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+    /* cursor: pointer; */ /* Remove cursor if only button toggles */
+    /* transition: background-color 0.2s ease; */ /* Moved to pod-card */
 }
 
-.pod-header:hover {
+/* Remove hover effect from header if card has it */
+/* .pod-header:hover {
     background: rgba(255, 255, 255, 0.02);
+} */
+
+/* Title section within header */
+.pod-title {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Space between h3 and badge */
+    flex-grow: 1; /* Allow title to take available space */
+    min-width: 0; /* Prevent overflow issues */
 }
+
+.pod-title h3 {
+    margin: 0;
+    font-size: 16px; /* Slightly larger */
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 
 .pod-details {
-    padding: 0 12px 12px 12px;
+    padding: 16px; /* Consistent padding */
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     animation: slideDown 0.2s ease-out;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.expand-toggle {
-    margin-right: 8px;
+    display: flex; /* Use flex for layout */
+    flex-direction: column; /* Stack sections vertically */
+    gap: 20px; /* Space between sections */
 }
 
 /* Pod info */
@@ -177,9 +178,10 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 6px;
-    padding: 12px;
+    /* Remove background/padding if details has padding */
+    /* background: rgba(255, 255, 255, 0.03); */
+    /* border-radius: 6px; */
+    /* padding: 12px; */
 }
 
 .info-group {
@@ -188,6 +190,7 @@
     gap: 12px 20px;
 }
 
+/* Fix this so that it is unique */
 .info-item {
     display: flex;
     flex-direction: column;
@@ -205,13 +208,14 @@
     color: rgba(255, 255, 255, 0.9);
 }
 
-/* Status badges */
+/* Status badges - Styles seem okay */
 .status-badge {
     padding: 2px 8px;
     border-radius: 12px;
     font-size: 11px;
     font-weight: 500;
     flex-shrink: 0;
+    line-height: 1.5; /* Improve vertical alignment */
 }
 
 .status-running {
@@ -242,41 +246,51 @@
     color: #ef4444;
 }
 
-/* Labels section */
+/* Labels section - Align with namespaces/secrets.css */
 .labels-section {
-    margin: 0;
+    margin: 0; /* Remove default margins */
 }
 
 .labels-section h4 {
-    font-size: 14px;
+    font-size: 14px; /* Consistent heading size */
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.9);
-    margin: 0 0 8px 0;
+    color: rgba(255, 255, 255, 0.7); /* Lighter heading color */
+    margin: 0 0 10px 0; /* Consistent bottom margin */
 }
 
 .labels-grid {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    max-width: 100%; /* Ensure it doesn't overflow */
 }
 
 .label {
     display: inline-flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.08); /* Slightly different background */
     border-radius: 4px;
     padding: 4px 8px;
     font-size: 12px;
+    max-width: 100%; /* Prevent long labels from breaking layout */
+    overflow: hidden; /* Hide overflow */
 }
 
 .label-key {
     color: rgba(255, 255, 255, 0.6);
     margin-right: 4px;
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis */
+    white-space: nowrap; /* Prevent wrapping */
 }
 
 .label-value {
     color: rgba(255, 255, 255, 0.9);
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis */
+    white-space: nowrap; /* Prevent wrapping */
 }
+
 
 /* Containers section */
 .containers-section {
@@ -284,10 +298,10 @@
 }
 
 .containers-section h4 {
-    font-size: 14px;
+    font-size: 14px; /* Consistent heading size */
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.9);
-    margin: 0 0 8px 0;
+    color: rgba(255, 255, 255, 0.7); /* Lighter heading color */
+    margin: 0 0 10px 0; /* Consistent bottom margin */
 }
 
 .containers-grid {
@@ -379,8 +393,8 @@
 .conditions-section h4 {
     font-size: 14px;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.9);
-    margin: 0 0 8px 0;
+    color: rgba(255, 255, 255, 0.7); /* Lighter heading color */
+    margin: 0 0 10px 0; /* Consistent bottom margin */
 }
 
 .conditions-grid {
@@ -432,23 +446,35 @@
 
 .pod-controls {
     display: flex;
+    align-items: center; /* Vertically align buttons */
     gap: 6px;
-    z-index: 1;
+    flex-shrink: 0; /* Prevent controls from shrinking */
+    /* z-index: 1; */ /* Usually not needed */
 }
 
-.pod-controls .btn-icon {
-    cursor: pointer;
+/* Style icon buttons */
+.btn-icon {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6); /* Default icon color */
     padding: 4px;
     border-radius: 4px;
+    cursor: pointer;
     transition: all 0.2s ease;
+    font-size: 16px; /* Adjust icon size if needed */
+    line-height: 1; /* Prevent extra space */
+    display: inline-flex; /* Ensure proper alignment */
+    align-items: center;
+    justify-content: center;
 }
 
-.pod-controls .btn-icon:hover {
+.btn-icon:hover {
     background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9); /* Icon color on hover */
 }
 
-.pod-header .pod-title {
-    flex: 1;
-    min-width: 0;
-    margin-right: 12px;
+/* Specific toggle button */
+.expand-toggle {
+    /* Keep margin if needed */
+    /* margin-right: 8px; */
 }

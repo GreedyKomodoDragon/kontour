@@ -81,12 +81,12 @@ pub fn Navbar() -> Element {
                             "Persistent Volume Claims"
                         }
                         Link {
-                            to: Route::Blog { id: 10 },
+                            to: Route::ConfigMaps {}, // Update route
                             class: "nav-configmaps",
                             "Config Maps"
                         }
                         Link {
-                            to: Route::Blog { id: 11 },
+                            to: Route::Secrets {}, // Update route
                             class: "nav-secrets",
                             "Secrets"
                         }

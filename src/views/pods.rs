@@ -157,10 +157,13 @@ pub fn Pods() -> Element {
 
     rsx! {
         document::Link { rel: "stylesheet", href: PODS_CSS }
-        div { class: "pods-container",
-            div { class: "pods-header",
+        // Add Tailwind: background color
+        div { class: "pods-container", // Test Tailwind bg
+            // Add Tailwind: border
+            div { class: "pods-header", // Test Tailwind border
                 div { class: "header-left",
-                    h1 { "Pods" }
+                    // Add Tailwind: text color
+                    h1 { class: "text-yellow-300", "Pods" } // Test Tailwind text color
                     div { class: "header-controls",
                         div { class: "search-container",
                             input {
@@ -190,7 +193,8 @@ pub fn Pods() -> Element {
                     }
                 }
                 div { class: "header-actions",
-                    button { class: "btn btn-primary", "Create Pod" }
+                    // Add Tailwind: hover effect
+                    button { class: "btn btn-primary hover:bg-yellow-600", "Create Pod" } // Test Tailwind hover
                     button { class: "btn btn-secondary", "Refresh" }
                 }
             }
@@ -198,12 +202,12 @@ pub fn Pods() -> Element {
             div { class: "pods-grid",
                 {filtered_pods.read().iter().map(|pod| {
                     let is_expanded = expanded_pods.read().contains(&pod.name);
-                    // Clone pod name outside the move closure for the button onclick
-                    let pod_name_clone = pod.name.clone(); 
+                    let pod_name_clone = pod.name.clone();
                     rsx! {
-                        div { 
+                        // Add Tailwind: padding
+                        div {
                             key: "{pod.name}",
-                            class: "pod-card",
+                            class: "pod-card p-10", // Test Tailwind padding
                             div { 
                                 class: "pod-header",
                                 // Optional: Keep header click commented or remove if only button should toggle

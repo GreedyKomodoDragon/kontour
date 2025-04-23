@@ -23,6 +23,12 @@ pub use ingresses::Ingresses;
 mod pvcs; // Add module
 pub use pvcs::Pvcs; // Add export
 
+mod configmaps; // Add module
+pub use configmaps::ConfigMaps; // Add export
+
+mod secrets; // Add module
+pub use secrets::Secrets; // Add export
+
 mod home;
 pub use home::Home;
 

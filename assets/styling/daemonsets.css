@@ -19,8 +19,8 @@
 }
 
 .header-left h1 {
-    font-size: 24px; /* Match pods */
-    font-weight: 500; /* Match pods */
+    font-size: 24px; 
+    font-weight: 500; 
     color: rgba(255, 255, 255, 0.9);
     margin: 0;
 }
@@ -28,14 +28,14 @@
 .header-controls {
     display: flex;
     align-items: center;
-    gap: 10px; /* Match pods */
+    gap: 10px; 
     flex-wrap: wrap; /* Allow wrapping */
 }
 
 /* --- Controls (Dark Theme) --- */
 .search-container {
     position: relative;
-    width: 140px; /* Match pods */
+    width: 140px; 
     flex-shrink: 0;
 }
 
@@ -44,10 +44,10 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
     color: rgba(255, 255, 255, 0.9);
-    font-size: 13px; /* Match pods */
-    padding: 6px 10px; /* Match pods */
+    font-size: 13px; 
+    padding: 6px 10px; 
     width: 100%;
-    height: 32px; /* Match pods */
+    height: 32px; 
     transition: all 0.2s ease;
 }
 .search-input:focus {
@@ -62,10 +62,10 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
     color: rgba(255, 255, 255, 0.9);
-    font-size: 13px; /* Match pods */
-    padding: 6px 10px; /* Match pods */
-    height: 32px; /* Match pods */
-    width: 140px; /* Match pods */
+    font-size: 13px; 
+    padding: 6px 10px; 
+    height: 32px; 
+    width: 140px; 
     flex-shrink: 0;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -78,44 +78,44 @@
 }
 
 .daemonset-count { /* Renamed */
-    color: rgba(255, 255, 255, 0.6); /* Match pods */
-    font-size: 13px; /* Match pods */
+    color: rgba(255, 255, 255, 0.6); 
+    font-size: 13px; 
     white-space: nowrap;
 }
 
 .header-actions {
     display: flex;
-    gap: 10px; /* Match pods */
+    gap: 10px; 
 }
 
 /* --- Button Styles (Dark Theme) --- */
 .btn {
-    padding: 6px 12px; /* Match pods */
+    padding: 6px 12px; 
     border-radius: 6px;
-    font-size: 13px; /* Match pods */
+    font-size: 13px; 
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
     border: none;
-    height: 32px; /* Match pods */
+    height: 32px; 
     display: inline-flex;
     align-items: center;
 }
 
 .btn-primary {
-    background: #3b82f6; /* Match pods */
+    background: #3b82f6; 
     color: white;
 }
 .btn-primary:hover {
-    background: #2563eb; /* Match pods */
+    background: #2563eb; 
 }
 
 .btn-secondary {
-    background: rgba(255, 255, 255, 0.1); /* Match pods */
+    background: rgba(255, 255, 255, 0.1); 
     color: white;
 }
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.15); /* Match pods */
+    background: rgba(255, 255, 255, 0.15); 
 }
 
 .btn-icon {
@@ -123,13 +123,13 @@
     border: none;
     font-size: 1rem; /* Adjust as needed */
     cursor: pointer;
-    padding: 4px; /* Match pods */
-    border-radius: 4px; /* Match pods */
+    padding: 4px; 
+    border-radius: 4px; 
     color: rgba(255, 255, 255, 0.6); /* Lighter icon color */
-    transition: all 0.2s ease; /* Match pods */
+    transition: all 0.2s ease; 
 }
 .btn-icon:hover {
-    background-color: rgba(255, 255, 255, 0.1); /* Match pods */
+    background-color: rgba(255, 255, 255, 0.1); 
     color: rgba(255, 255, 255, 0.9);
 }
 
@@ -137,14 +137,14 @@
 .daemonsets-grid { /* Renamed */
     display: grid;
     grid-template-columns: 1fr; /* Force one column */
-    gap: 20px; /* Match pods */
+    gap: 20px; 
 }
 
 /* --- DaemonSet Card (Dark Theme) --- */
 .daemonset-card { /* Renamed */
-    background: rgba(255, 255, 255, 0.05); /* Match pods */
-    border-radius: 8px; /* Match pods */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* Match pods */
+    background: rgba(255, 255, 255, 0.05); 
+    border-radius: 8px; 
+    border: 1px solid rgba(255, 255, 255, 0.1); 
     overflow: hidden;
 }
 
@@ -152,7 +152,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px; /* Match pods */
+    padding: 12px; 
 }
 
 .daemonset-title { /* Renamed */
@@ -176,22 +176,22 @@
 
 /* --- Status Badge Styles (Dark Theme) --- */
 .status-badge {
-    padding: 2px 8px; /* Match pods */
+    padding: 2px 8px; 
     border-radius: 12px;
-    font-size: 11px; /* Match pods */
+    font-size: 11px; 
     font-weight: 500;
     flex-shrink: 0;
     white-space: nowrap;
 }
 
 .status-running {
-    background: rgba(74, 222, 128, 0.2); /* Match pods */
-    color: #4ade80; /* Match pods */
+    background: rgba(74, 222, 128, 0.2); 
+    color: #4ade80; 
 }
 
 .status-pending, .status-progressing {
-    background: rgba(250, 204, 21, 0.2); /* Match pods */
-    color: #facc15; /* Match pods */
+    background: rgba(250, 204, 21, 0.2); 
+    color: #facc15; 
 }
 
 .status-warning {
@@ -200,17 +200,17 @@
 }
 
 .status-failed {
-    background: rgba(239, 68, 68, 0.2); /* Match pods */
-    color: #ef4444; /* Match pods */
+    background: rgba(239, 68, 68, 0.2); 
+    color: #ef4444; 
 }
 
 /* Status for conditions */
 .status-true {
-    color: #4ade80; /* Match pods */
+    color: #4ade80; 
 }
 
 .status-false {
-    color: #ef4444; /* Match pods */
+    color: #ef4444; 
 }
 
 .status-unknown {
@@ -221,15 +221,15 @@
 .daemonset-controls { /* Renamed */
     display: flex;
     align-items: center;
-    gap: 6px; /* Match pods */
+    gap: 6px; 
     z-index: 1; /* Ensure controls are clickable */
 }
 
 /* --- DaemonSet Details (Dark Theme) --- */
 .daemonset-details { /* Renamed */
-    padding: 0 12px 12px 12px; /* Match pods */
-    border-top: 1px solid rgba(255, 255, 255, 0.1); /* Match pods */
-    animation: slideDown 0.2s ease-out; /* Match pods */
+    padding: 0 12px 12px 12px; 
+    border-top: 1px solid rgba(255, 255, 255, 0.1); 
+    animation: slideDown 0.2s ease-out; 
     display: flex;
     flex-direction: column;
     gap: 16px; /* Spacing between sections */
@@ -250,33 +250,33 @@
 .daemonset-info { /* Renamed */
     display: flex;
     flex-direction: column; /* Stack info groups */
-    gap: 12px; /* Match pods */
-    background: rgba(255, 255, 255, 0.03); /* Match pods */
-    border-radius: 6px; /* Match pods */
-    padding: 12px; /* Match pods */
+    gap: 12px; 
+    background: rgba(255, 255, 255, 0.03); 
+    border-radius: 6px; 
+    padding: 12px; 
 }
 
 .info-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px 20px; /* Match pods */
+    gap: 12px 20px;
 }
 
 .info-item {
     display: flex;
     flex-direction: column;
-    gap: 4px; /* Match pods */
-    min-width: 100px; /* Match pods */
+    gap: 4px;
+    min-width: 100px; 
 }
 
 .info-label {
-    font-size: 12px; /* Match pods */
-    color: rgba(255, 255, 255, 0.5); /* Match pods */
+    font-size: 12px; 
+    color: rgba(255, 255, 255, 0.5); 
 }
 
 .info-value {
-    font-size: 13px; /* Match pods */
-    color: rgba(255, 255, 255, 0.9); /* Match pods */
+    font-size: 13px; 
+    color: rgba(255, 255, 255, 0.9); 
 }
 /* Italicize info-value if needed */
 .info-value i {
@@ -287,64 +287,64 @@
 
 /* --- Labels and Selector Section (Dark Theme) --- */
 .labels-section {
-    margin: 0; /* Match pods */
+    margin: 0; 
 }
 
 .labels-section h4 {
-    font-size: 14px; /* Match pods */
+    font-size: 14px; 
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.9); /* Match pods */
-    margin: 0 0 8px 0; /* Match pods */
+    color: rgba(255, 255, 255, 0.9); 
+    margin: 0 0 8px 0; 
 }
 
 .labels-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px; /* Match pods */
+    gap: 8px; 
 }
 
 .label {
     display: inline-flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.05); /* Match pods */
-    border-radius: 4px; /* Match pods */
-    padding: 4px 8px; /* Match pods */
-    font-size: 12px; /* Match pods */
+    background: rgba(255, 255, 255, 0.05); 
+    border-radius: 4px; 
+    padding: 4px 8px; 
+    font-size: 12px; 
 }
 
 .label-key {
-    color: rgba(255, 255, 255, 0.6); /* Match pods */
-    margin-right: 4px; /* Match pods */
+    color: rgba(255, 255, 255, 0.6); 
+    margin-right: 4px; 
 }
 
 .label-value {
-    color: rgba(255, 255, 255, 0.9); /* Match pods */
+    color: rgba(255, 255, 255, 0.9); 
 }
 
 /* --- Conditions Section (Dark Theme) --- */
 .conditions-section {
-    margin: 0; /* Match pods */
+    margin: 0; 
 }
 
 .conditions-section h4 {
-    font-size: 14px; /* Match pods */
+    font-size: 14px; 
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.9); /* Match pods */
-    margin: 0 0 8px 0; /* Match pods */
+    color: rgba(255, 255, 255, 0.9); 
+    margin: 0 0 8px 0; 
 }
 
 .conditions-grid {
     display: flex;
     flex-direction: column;
-    gap: 8px; /* Match pods */
+    gap: 8px; 
 }
 
 .condition {
     display: flex; /* Use flex for better control */
     flex-direction: column; /* Stack info/details/message */
-    background: rgba(255, 255, 255, 0.03); /* Match pods */
-    border-radius: 4px; /* Match pods */
-    padding: 8px 12px; /* Match pods */
+    background: rgba(255, 255, 255, 0.03); 
+    border-radius: 4px; 
+    padding: 8px 12px; 
     gap: 4px; /* Space between rows */
 }
 
@@ -352,17 +352,17 @@
     display: flex;
     justify-content: space-between; /* Push status to the right */
     align-items: center;
-    gap: 8px; /* Match pods */
+    gap: 8px; 
 }
 
 .condition-type {
-    font-size: 12px; /* Match pods */
-    color: rgba(255, 255, 255, 0.9); /* Match pods */
+    font-size: 12px; 
+    color: rgba(255, 255, 255, 0.9); 
     font-weight: 500;
 }
 
 .condition-status {
-    font-size: 12px; /* Match pods */
+    font-size: 12px; 
     font-weight: 500;
     /* Color is handled by status-true/status-false */
 }
@@ -371,17 +371,17 @@
     display: flex;
     justify-content: space-between; /* Push time to the right */
     align-items: center;
-    gap: 12px; /* Match pods */
+    gap: 12px; 
 }
 
 .condition-reason {
-    font-size: 12px; /* Match pods */
-    color: rgba(255, 255, 255, 0.6); /* Match pods */
+    font-size: 12px; 
+    color: rgba(255, 255, 255, 0.6); 
 }
 
 .condition-time {
-    font-size: 12px; /* Match pods */
-    color: rgba(255, 255, 255, 0.5); /* Match pods */
+    font-size: 12px; 
+    color: rgba(255, 255, 255, 0.5); 
     white-space: nowrap;
 }
 

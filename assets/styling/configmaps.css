@@ -1,0 +1,347 @@
+/* --- Container and Header (Dark Theme) --- */
+.configmaps-container { /* Renamed */
+    padding: 24px;
+    max-width: 1400px; /* Consistent max-width */
+    margin: 0 auto;
+}
+
+.configmaps-header { /* Renamed */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.header-left {
+    display: flex;
+    flex-direction: column; /* Stack title and controls */
+    gap: 16px; /* Gap between title and controls */
+}
+
+.header-left h1 {
+    font-size: 24px; /* Match */
+    font-weight: 500; /* Match */
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Match */
+    flex-wrap: wrap; /* Allow wrapping */
+}
+
+/* --- Controls (Dark Theme) --- */
+.search-container {
+    position: relative;
+    width: 140px; /* Match */
+    flex-shrink: 0;
+}
+
+.search-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px; /* Match */
+    padding: 6px 10px; /* Match */
+    width: 100%;
+    height: 32px; /* Match */
+    transition: all 0.2s ease;
+}
+.search-input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+
+.namespace-select { /* Re-use */
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px; /* Match */
+    padding: 6px 10px; /* Match */
+    height: 32px; /* Match */
+    width: 140px; /* Match */
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px;
+    padding-right: 28px; /* Space for arrow */
+}
+
+.configmap-count { /* Renamed */
+    color: rgba(255, 255, 255, 0.6); /* Match */
+    font-size: 13px; /* Match */
+    white-space: nowrap;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px; /* Match */
+}
+
+/* --- Button Styles (Dark Theme) - Re-use --- */
+.btn {
+    padding: 6px 12px; /* Match */
+    border-radius: 6px;
+    font-size: 13px; /* Match */
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    height: 32px; /* Match */
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-primary {
+    background: #3b82f6; /* Match */
+    color: white;
+}
+.btn-primary:hover {
+    background: #2563eb; /* Match */
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1); /* Match */
+    color: white;
+}
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15); /* Match */
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    font-size: 1rem; /* Adjust as needed */
+    cursor: pointer;
+    padding: 4px; /* Match */
+    border-radius: 4px; /* Match */
+    color: rgba(255, 255, 255, 0.6); /* Lighter icon color */
+    transition: all 0.2s ease; /* Match */
+}
+.btn-icon:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Match */
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* --- ConfigMaps Grid (One per line) --- */
+.configmaps-grid { /* Renamed */
+    display: grid;
+    grid-template-columns: 1fr; /* Force one column */
+    gap: 20px; /* Match */
+}
+
+/* --- ConfigMap Card (Dark Theme) --- */
+.configmap-card { /* Renamed */
+    background: rgba(255, 255, 255, 0.05); /* Match */
+    border-radius: 8px; /* Match */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Match */
+    overflow: hidden;
+}
+
+.configmap-header-card { /* Renamed */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px; /* Match */
+    gap: 12px; /* Gap between title, info, controls */
+    flex-wrap: wrap; /* Allow wrapping */
+}
+
+.configmap-title { /* Renamed */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-grow: 1; /* Allow title to take available space */
+    min-width: 150px; /* Ensure title doesn't get too squished */
+}
+
+.configmap-title h3 { /* Renamed */
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.configmap-info-short { /* Renamed */
+    display: flex;
+    align-items: center;
+    gap: 16px; /* Space between info items */
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    flex-shrink: 1; /* Allow shrinking */
+    min-width: 0; /* Prevent overflow */
+    overflow: hidden; /* Hide overflow */
+    flex-wrap: wrap; /* Allow info items to wrap */
+}
+
+.info-item-short {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.info-item-short:hover { /* Show full text on hover */
+    overflow: visible;
+    max-width: none;
+}
+
+
+/* --- Status Badge Styles (Dark Theme) --- */
+.status-badge {
+    padding: 2px 8px; /* Match */
+    border-radius: 12px;
+    font-size: 11px; /* Match */
+    font-weight: 500;
+    flex-shrink: 0;
+    white-space: nowrap;
+    max-width: 150px; /* Limit width */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Generic info badge for configmaps */
+.status-info {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+
+.configmap-controls { /* Renamed */
+    display: flex;
+    align-items: center;
+    gap: 6px; /* Match */
+    z-index: 1; /* Ensure controls are clickable */
+    flex-shrink: 0; /* Prevent controls from shrinking */
+}
+
+/* --- ConfigMap Details (Dark Theme) --- */
+.configmap-details { /* Renamed */
+    padding: 0 12px 12px 12px; /* Match */
+    border-top: 1px solid rgba(255, 255, 255, 0.1); /* Match */
+    animation: slideDown 0.2s ease-out; /* Match */
+    display: flex;
+    flex-direction: column;
+    gap: 16px; /* Spacing between sections */
+}
+
+/* Re-use slideDown */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- Labels and Annotations Section (Dark Theme) - Re-use --- */
+.labels-section {
+    margin: 0; /* Match */
+}
+
+.labels-section h4 {
+    font-size: 14px; /* Match */
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9); /* Match */
+    margin: 0 0 8px 0; /* Match */
+}
+
+.labels-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px; /* Match */
+}
+
+.label {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05); /* Match */
+    border-radius: 4px; /* Match */
+    padding: 4px 8px; /* Match */
+    font-size: 12px; /* Match */
+    max-width: 100%; /* Prevent overflow */
+}
+
+.label-key {
+    color: rgba(255, 255, 255, 0.6); /* Match */
+    margin-right: 4px; /* Match */
+    white-space: nowrap;
+}
+
+.label-value {
+    color: rgba(255, 255, 255, 0.9); /* Match */
+    word-break: break-all; /* Allow long values to wrap */
+}
+
+/* --- Data Section (Dark Theme) --- */
+.data-section {
+    margin: 0;
+}
+
+.data-section h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 8px 0;
+}
+
+.data-grid {
+    display: flex;
+    flex-direction: column; /* Stack key-value pairs */
+    gap: 8px;
+}
+
+.data-item {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column; /* Stack key and value */
+    gap: 4px;
+}
+
+.data-key {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+    word-break: break-all; /* Allow long keys to wrap */
+}
+
+.data-value {
+    color: rgba(255, 255, 255, 0.9);
+    font-family: monospace; /* Use monospace for data */
+    white-space: pre-wrap; /* Preserve whitespace and wrap */
+    word-break: break-all; /* Break long words/lines */
+    max-height: 200px; /* Limit height */
+    overflow-y: auto; /* Add scroll if needed */
+    background-color: rgba(0, 0, 0, 0.2); /* Slightly darker background for value */
+    padding: 4px 6px;
+    border-radius: 3px;
+}
+
+.data-value.binary-placeholder i {
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+}
+
+/* Remove padding/background for binary placeholder */
+.data-item.binary-item .data-value {
+    background-color: transparent;
+    padding: 0;
+    max-height: none;
+    overflow: visible;
+}

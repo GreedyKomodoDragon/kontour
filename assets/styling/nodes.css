@@ -102,37 +102,6 @@
     gap: 12px;
 }
 
-.btn {
-    padding: 6px 12px;  /* Reduced from 8px 16px */
-    border-radius: 6px;
-    font-size: 13px;  /* Reduced from 14px */
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-    height: 32px;  /* Added to match other elements */
-    display: inline-flex;
-    align-items: center;
-}
-
-.btn-primary {
-    background: #3b82f6;
-    color: white;
-}
-
-.btn-primary:hover {
-    background: #2563eb;
-}
-
-.btn-secondary {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-}
-
-.btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.15);
-}
-
 .nodes-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));

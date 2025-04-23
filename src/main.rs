@@ -1,7 +1,7 @@
 // The dioxus prelude contains a ton of common items used in dioxus apps. It's a good idea to import wherever you
 // need dioxus
 use dioxus::prelude::*;
-use views::{Blog, Home, Navbar, Nodes, Namespaces, Pods, Deployments, StatefulSets, DaemonSets, Services, Ingresses, Pvcs}; // Add Pvcs
+use views::{Blog, Home, Navbar, Nodes, Namespaces, Pods, Deployments, StatefulSets, DaemonSets, Services, Ingresses, Pvcs, ConfigMaps, Secrets};
 
 mod components;
 mod views;
@@ -28,8 +28,12 @@ enum Route {
         Services {},
         #[route("/ingresses")]
         Ingresses {},
-        #[route("/pvcs")] // Add route
-        Pvcs {}, // Add route
+        #[route("/pvcs")]
+        Pvcs {},
+        #[route("/configmaps")]
+        ConfigMaps {},
+        #[route("/secrets")] // Add route
+        Secrets {}, // Add route
         #[route("/blog/:id")]
         Blog { id: i32 },
 }
