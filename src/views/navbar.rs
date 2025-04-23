@@ -45,17 +45,17 @@ pub fn Navbar() -> Element {
                             "Pods"
                         }
                         Link {
-                            to: Route::Blog { id: 4 },
+                            to: Route::Deployments {},
                             class: "nav-deployments",
                             "Deployments"
                         }
                         Link {
-                            to: Route::Blog { id: 5 },
+                            to: Route::StatefulSets {},
                             class: "nav-statefulsets",
                             "StatefulSets"
                         }
                         Link {
-                            to: Route::Blog { id: 6 },
+                            to: Route::DaemonSets {},
                             class: "nav-daemonsets",
                             "DaemonSets"
                         }
@@ -63,12 +63,12 @@ pub fn Navbar() -> Element {
                     div { class: "nav-group",
                         span { class: "nav-group-title", "NETWORK" }
                         Link {
-                            to: Route::Blog { id: 7 },
+                            to: Route::Services {},
                             class: "nav-services",
                             "Services"
                         }
                         Link {
-                            to: Route::Blog { id: 8 },
+                            to: Route::Ingresses {},
                             class: "nav-ingress",
                             "Ingress"
                         }
@@ -76,7 +76,7 @@ pub fn Navbar() -> Element {
                     div { class: "nav-group",
                         span { class: "nav-group-title", "STORAGE" }
                         Link {
-                            to: Route::Blog { id: 9 },
+                            to: Route::Pvcs {}, // Update route
                             class: "nav-pvcs",
                             "Persistent Volume Claims"
                         }

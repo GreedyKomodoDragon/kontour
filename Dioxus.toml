@@ -3,7 +3,7 @@
 [web.app]
 
 # HTML title tag content
-title = "hot_dog"
+title = "Kontour"
 
 # include `assets` in web platform
 [web.resource]
