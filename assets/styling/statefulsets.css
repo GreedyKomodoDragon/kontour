@@ -56,27 +56,6 @@
     background: rgba(255, 255, 255, 0.08);
 }
 
-
-.namespace-select {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 13px; /* Match pods */
-    padding: 6px 10px; /* Match pods */
-    height: 32px; /* Match pods */
-    width: 140px; /* Match pods */
-    flex-shrink: 0;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    appearance: none;
-    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 10px;
-    padding-right: 28px; /* Space for arrow */
-}
-
 .statefulset-count { /* Renamed */
     color: rgba(255, 255, 255, 0.6); /* Match pods */
     font-size: 13px; /* Match pods */
@@ -86,51 +65,6 @@
 .header-actions {
     display: flex;
     gap: 10px; /* Match pods */
-}
-
-/* --- Button Styles (Dark Theme) --- */
-.btn {
-    padding: 6px 12px; /* Match pods */
-    border-radius: 6px;
-    font-size: 13px; /* Match pods */
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-    height: 32px; /* Match pods */
-    display: inline-flex;
-    align-items: center;
-}
-
-.btn-primary {
-    background: #3b82f6; /* Match pods */
-    color: white;
-}
-.btn-primary:hover {
-    background: #2563eb; /* Match pods */
-}
-
-.btn-secondary {
-    background: rgba(255, 255, 255, 0.1); /* Match pods */
-    color: white;
-}
-.btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.15); /* Match pods */
-}
-
-.btn-icon {
-    background: none;
-    border: none;
-    font-size: 1rem; /* Adjust as needed */
-    cursor: pointer;
-    padding: 4px; /* Match pods */
-    border-radius: 4px; /* Match pods */
-    color: rgba(255, 255, 255, 0.6); /* Lighter icon color */
-    transition: all 0.2s ease; /* Match pods */
-}
-.btn-icon:hover {
-    background-color: rgba(255, 255, 255, 0.1); /* Match pods */
-    color: rgba(255, 255, 255, 0.9);
 }
 
 /* --- StatefulSets Grid (One per line) --- */
