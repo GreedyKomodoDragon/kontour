@@ -4,3 +4,4 @@
 
 mod hero;
 pub use hero::Hero;
+pub mod kubeconfig_name_dialog;

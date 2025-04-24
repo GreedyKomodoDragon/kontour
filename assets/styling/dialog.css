@@ -1,0 +1,119 @@
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* Slightly darker overlay */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  font-family: 'Inter', sans-serif; /* Use main font */
+}
+
+.dialog-box {
+  background-color: #1a1d23; /* Darker background, similar to sidebar/content areas */
+  color: rgba(255, 255, 255, 0.9); /* Main text color */
+  padding: 24px 32px; /* Slightly more padding */
+  border-radius: 8px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); /* Adjusted shadow for dark theme */
+  min-width: 350px; /* Slightly wider */
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Consistent gap */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
+}
+
+.dialog-box h3 {
+  margin-top: 0;
+  margin-bottom: 8px; /* Reduced margin */
+  color: rgba(255, 255, 255, 0.9); /* Main text color */
+  font-size: 18px; /* Slightly larger heading */
+  font-weight: 500;
+  text-align: center;
+}
+
+.dialog-box p {
+    font-size: 13px; /* Consistent small text size */
+    color: rgba(255, 255, 255, 0.6); /* Muted text color */
+    margin-bottom: 16px;
+    word-break: break-all;
+    text-align: center; /* Center the original filename */
+    line-height: 1.4;
+}
+
+.dialog-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px; /* Consistent gap */
+}
+
+.dialog-input-group label {
+    font-weight: 500; /* Medium weight */
+    font-size: 13px; /* Consistent label size */
+    color: rgba(255, 255, 255, 0.7); /* Slightly less muted label */
+}
+
+.dialog-input-group input[type="text"] {
+  padding: 8px 12px; /* Consistent padding */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Input border */
+  border-radius: 6px; /* Consistent border radius */
+  font-size: 13px; /* Consistent font size */
+  width: 100%;
+  box-sizing: border-box;
+  background-color: rgba(255, 255, 255, 0.05); /* Input background */
+  color: rgba(255, 255, 255, 0.9); /* Input text color */
+  transition: all 0.2s ease;
+}
+
+.dialog-input-group input[type="text"]:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.2); /* Focus border */
+    background-color: rgba(255, 255, 255, 0.08); /* Focus background */
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px; /* More space before buttons */
+}
+
+.dialog-button {
+  padding: 6px 12px; /* Consistent button padding */
+  border: none;
+  border-radius: 6px; /* Consistent button radius */
+  cursor: pointer;
+  font-weight: 500; /* Medium weight */
+  font-size: 13px; /* Consistent button font size */
+  transition: background-color 0.2s ease;
+  height: 32px; /* Consistent button height */
+  display: inline-flex;
+  align-items: center;
+}
+
+.dialog-button.ok {
+  background-color: #3b82f6; /* Primary button color */
+  color: white;
+}
+.dialog-button.ok:hover {
+  background-color: #2563eb; /* Primary button hover */
+}
+.dialog-button.ok:disabled {
+  background-color: rgba(59, 130, 246, 0.5); /* Dimmed primary color */
+  color: rgba(255, 255, 255, 0.7);
+  cursor: not-allowed;
+}
+
+
+.dialog-button.cancel {
+  background-color: rgba(255, 255, 255, 0.1); /* Secondary button style */
+  color: rgba(255, 255, 255, 0.9);
+  border: none; /* Remove border */
+}
+.dialog-button.cancel:hover {
+  background-color: rgba(255, 255, 255, 0.15); /* Secondary button hover */
+}
+
