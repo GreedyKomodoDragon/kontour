@@ -13,29 +13,6 @@
     gap: 16px; /* Add gap for wrapping */
 }
 
-.header-left {
-    display: flex;
-    align-items: center; /* Align h1 and controls */
-    gap: 16px; /* Add gap between h1 and controls */
-    flex-wrap: wrap; /* Allow controls to wrap */
-    /* Removed flex-direction: column */
-}
-
-.header-left h1 {
-    font-size: 24px;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.9);
-    margin: 0;
-    white-space: nowrap; /* Prevent h1 from wrapping */
-}
-
-.header-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
 /* Search and select controls - Styles seem mostly consistent, ensure height/padding */
 .search-container {
     position: relative;
@@ -43,24 +20,6 @@
     flex-shrink: 0;
 }
 
-.search-input {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 13px;
-    padding: 6px 10px; /* Consistent padding */
-    width: 100%;
-    height: 32px; /* Consistent height */
-    box-sizing: border-box; /* Include padding/border in height */
-    transition: all 0.2s ease;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.08);
-}
 
 .pod-count {
     color: rgba(255, 255, 255, 0.6);
@@ -154,30 +113,6 @@
     /* padding: 12px; */
 }
 
-.info-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px 20px;
-}
-
-/* Fix this so that it is unique */
-.info-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 100px;
-}
-
-.info-label {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
-}
-
-.info-value {
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.9);
-}
-
 /* Status badges - Styles seem okay */
 .status-badge {
     padding: 2px 8px;
@@ -215,52 +150,6 @@
 .status-false {
     color: #ef4444;
 }
-
-/* Labels section - Align with namespaces/secrets.css */
-.labels-section {
-    margin: 0; /* Remove default margins */
-}
-
-.labels-section h4 {
-    font-size: 14px; /* Consistent heading size */
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.7); /* Lighter heading color */
-    margin: 0 0 10px 0; /* Consistent bottom margin */
-}
-
-.labels-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    max-width: 100%; /* Ensure it doesn't overflow */
-}
-
-.label {
-    display: inline-flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.08); /* Slightly different background */
-    border-radius: 4px;
-    padding: 4px 8px;
-    font-size: 12px;
-    max-width: 100%; /* Prevent long labels from breaking layout */
-    overflow: hidden; /* Hide overflow */
-}
-
-.label-key {
-    color: rgba(255, 255, 255, 0.6);
-    margin-right: 4px;
-    overflow: hidden; /* Hide overflow */
-    text-overflow: ellipsis; /* Add ellipsis */
-    white-space: nowrap; /* Prevent wrapping */
-}
-
-.label-value {
-    color: rgba(255, 255, 255, 0.9);
-    overflow: hidden; /* Hide overflow */
-    text-overflow: ellipsis; /* Add ellipsis */
-    white-space: nowrap; /* Prevent wrapping */
-}
-
 
 /* Containers section */
 .containers-section {
@@ -340,78 +229,12 @@
     min-width: 50px;
 }
 
-.progress-fill {
-    height: 100%;
-    background: #3b82f6;
-    border-radius: 2px;
-    transition: width 0.3s ease;
-}
-
 .metric-value {
     width: 80px;
     text-align: right;
     color: rgba(255, 255, 255, 0.9);
     font-size: 12px;
     flex-shrink: 0;
-}
-
-/* Conditions section */
-.conditions-section {
-    margin: 0;
-}
-
-.conditions-section h4 {
-    font-size: 14px;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.7); /* Lighter heading color */
-    margin: 0 0 10px 0; /* Consistent bottom margin */
-}
-
-.conditions-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.condition {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 4px;
-    padding: 8px 12px;
-}
-
-.condition-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.condition-type {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.condition-status {
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.condition-details {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.condition-reason {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.condition-time {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
 }
 
 .pod-controls {

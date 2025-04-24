@@ -1,35 +1,15 @@
 /* --- Container and Header (Dark Theme) --- */
-.services-container { /* Renamed */
+.services-container { 
     padding: 24px;
     max-width: 1400px; /* Consistent max-width */
     margin: 0 auto;
 }
 
-.services-header { /* Renamed */
+.services-header { 
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
-}
-
-.header-left {
-    display: flex;
-    flex-direction: column; /* Stack title and controls */
-    gap: 16px; /* Gap between title and controls */
-}
-
-.header-left h1 {
-    font-size: 24px; /* Match pods */
-    font-weight: 500; /* Match pods */
-    color: rgba(255, 255, 255, 0.9);
-    margin: 0;
-}
-
-.header-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* Match pods */
-    flex-wrap: wrap; /* Allow wrapping */
 }
 
 /* --- Controls (Dark Theme) --- */
@@ -39,25 +19,7 @@
     flex-shrink: 0;
 }
 
-.search-input {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 13px; /* Match pods */
-    padding: 6px 10px; /* Match pods */
-    width: 100%;
-    height: 32px; /* Match pods */
-    transition: all 0.2s ease;
-}
-.search-input:focus {
-    outline: none;
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.08);
-}
-
-
-.service-count { /* Renamed */
+.service-count { 
     color: rgba(255, 255, 255, 0.6); /* Match pods */
     font-size: 13px; /* Match pods */
     white-space: nowrap;
@@ -69,28 +31,28 @@
 }
 
 /* --- Services Grid (One per line) --- */
-.services-grid { /* Renamed */
+.services-grid { 
     display: grid;
     grid-template-columns: 1fr; /* Force one column */
     gap: 20px; /* Match pods */
 }
 
 /* --- Service Card (Dark Theme) --- */
-.service-card { /* Renamed */
+.service-card { 
     background: rgba(255, 255, 255, 0.05); /* Match pods */
     border-radius: 8px; /* Match pods */
     border: 1px solid rgba(255, 255, 255, 0.1); /* Match pods */
     overflow: hidden;
 }
 
-.service-header-card { /* Renamed */
+.service-header-card { 
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 12px; /* Match pods */
 }
 
-.service-title { /* Renamed */
+.service-title { 
     display: flex;
     align-items: center;
     gap: 10px;
@@ -99,7 +61,7 @@
     margin-right: 12px; /* Space before controls */
 }
 
-.service-title h3 { /* Renamed */
+.service-title h3 { 
     font-size: 16px; /* Slightly larger than pod title */
     font-weight: 500;
     color: rgba(255, 255, 255, 0.9);
@@ -150,7 +112,7 @@
 }
 
 
-.service-controls { /* Renamed */
+.service-controls { 
     display: flex;
     align-items: center;
     gap: 6px; /* Match pods */
@@ -158,7 +120,7 @@
 }
 
 /* --- Service Details (Dark Theme) --- */
-.service-details { /* Renamed */
+.service-details { 
     padding: 0 12px 12px 12px; /* Match pods */
     border-top: 1px solid rgba(255, 255, 255, 0.1); /* Match pods */
     animation: slideDown 0.2s ease-out; /* Match pods */
@@ -179,78 +141,13 @@
     }
 }
 
-.service-info { /* Renamed */
+.service-info { 
     display: flex;
     flex-direction: column; /* Stack info groups */
     gap: 12px; /* Match pods */
     background: rgba(255, 255, 255, 0.03); /* Match pods */
     border-radius: 6px; /* Match pods */
     padding: 12px; /* Match pods */
-}
-
-.info-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px 20px; /* Match pods */
-}
-
-.info-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px; /* Match pods */
-    min-width: 100px; /* Match pods */
-}
-
-.info-label {
-    font-size: 12px; /* Match pods */
-    color: rgba(255, 255, 255, 0.5); /* Match pods */
-}
-
-.info-value {
-    font-size: 13px; /* Match pods */
-    color: rgba(255, 255, 255, 0.9); /* Match pods */
-}
-/* Italicize info-value if needed */
-.info-value i {
-    font-style: italic;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-
-/* --- Labels and Selector Section (Dark Theme) --- */
-.labels-section {
-    margin: 0; /* Match pods */
-}
-
-.labels-section h4 {
-    font-size: 14px; /* Match pods */
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.9); /* Match pods */
-    margin: 0 0 8px 0; /* Match pods */
-}
-
-.labels-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px; /* Match pods */
-}
-
-.label {
-    display: inline-flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.05); /* Match pods */
-    border-radius: 4px; /* Match pods */
-    padding: 4px 8px; /* Match pods */
-    font-size: 12px; /* Match pods */
-}
-
-.label-key {
-    color: rgba(255, 255, 255, 0.6); /* Match pods */
-    margin-right: 4px; /* Match pods */
-}
-
-.label-value {
-    color: rgba(255, 255, 255, 0.9); /* Match pods */
 }
 
 /* --- Ports Section (Dark Theme) --- */

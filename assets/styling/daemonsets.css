@@ -1,35 +1,15 @@
 /* --- Container and Header (Dark Theme) --- */
-.daemonsets-container { /* Renamed */
+.daemonsets-container { 
     padding: 24px;
     max-width: 1400px; /* Consistent max-width */
     margin: 0 auto;
 }
 
-.daemonsets-header { /* Renamed */
+.daemonsets-header { 
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
-}
-
-.header-left {
-    display: flex;
-    flex-direction: column; /* Stack title and controls */
-    gap: 16px; /* Gap between title and controls */
-}
-
-.header-left h1 {
-    font-size: 24px; 
-    font-weight: 500; 
-    color: rgba(255, 255, 255, 0.9);
-    margin: 0;
-}
-
-.header-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px; 
-    flex-wrap: wrap; /* Allow wrapping */
 }
 
 /* --- Controls (Dark Theme) --- */
@@ -39,24 +19,7 @@
     flex-shrink: 0;
 }
 
-.search-input {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 13px; 
-    padding: 6px 10px; 
-    width: 100%;
-    height: 32px; 
-    transition: all 0.2s ease;
-}
-.search-input:focus {
-    outline: none;
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.daemonset-count { /* Renamed */
+.daemonset-count { 
     color: rgba(255, 255, 255, 0.6); 
     font-size: 13px; 
     white-space: nowrap;
@@ -68,28 +31,28 @@
 }
 
 /* --- DaemonSets Grid (One per line) --- */
-.daemonsets-grid { /* Renamed */
+.daemonsets-grid { 
     display: grid;
     grid-template-columns: 1fr; /* Force one column */
     gap: 20px; 
 }
 
 /* --- DaemonSet Card (Dark Theme) --- */
-.daemonset-card { /* Renamed */
+.daemonset-card { 
     background: rgba(255, 255, 255, 0.05); 
     border-radius: 8px; 
     border: 1px solid rgba(255, 255, 255, 0.1); 
     overflow: hidden;
 }
 
-.daemonset-header-card { /* Renamed */
+.daemonset-header-card { 
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 12px; 
 }
 
-.daemonset-title { /* Renamed */
+.daemonset-title { 
     display: flex;
     align-items: center;
     gap: 10px;
@@ -98,7 +61,7 @@
     margin-right: 12px; /* Space before controls */
 }
 
-.daemonset-title h3 { /* Renamed */
+.daemonset-title h3 { 
     font-size: 16px; /* Slightly larger than pod title */
     font-weight: 500;
     color: rgba(255, 255, 255, 0.9);
@@ -152,7 +115,7 @@
 }
 
 
-.daemonset-controls { /* Renamed */
+.daemonset-controls { 
     display: flex;
     align-items: center;
     gap: 6px; 
@@ -160,7 +123,7 @@
 }
 
 /* --- DaemonSet Details (Dark Theme) --- */
-.daemonset-details { /* Renamed */
+.daemonset-details { 
     padding: 0 12px 12px 12px; 
     border-top: 1px solid rgba(255, 255, 255, 0.1); 
     animation: slideDown 0.2s ease-out; 
@@ -181,148 +144,11 @@
     }
 }
 
-.daemonset-info { /* Renamed */
+.daemonset-info { 
     display: flex;
     flex-direction: column; /* Stack info groups */
     gap: 12px; 
     background: rgba(255, 255, 255, 0.03); 
     border-radius: 6px; 
     padding: 12px; 
-}
-
-.info-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px 20px;
-}
-
-.info-item {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 100px; 
-}
-
-.info-label {
-    font-size: 12px; 
-    color: rgba(255, 255, 255, 0.5); 
-}
-
-.info-value {
-    font-size: 13px; 
-    color: rgba(255, 255, 255, 0.9); 
-}
-/* Italicize info-value if needed */
-.info-value i {
-    font-style: italic;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-
-/* --- Labels and Selector Section (Dark Theme) --- */
-.labels-section {
-    margin: 0; 
-}
-
-.labels-section h4 {
-    font-size: 14px; 
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.9); 
-    margin: 0 0 8px 0; 
-}
-
-.labels-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px; 
-}
-
-.label {
-    display: inline-flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.05); 
-    border-radius: 4px; 
-    padding: 4px 8px; 
-    font-size: 12px; 
-}
-
-.label-key {
-    color: rgba(255, 255, 255, 0.6); 
-    margin-right: 4px; 
-}
-
-.label-value {
-    color: rgba(255, 255, 255, 0.9); 
-}
-
-/* --- Conditions Section (Dark Theme) --- */
-.conditions-section {
-    margin: 0; 
-}
-
-.conditions-section h4 {
-    font-size: 14px; 
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.9); 
-    margin: 0 0 8px 0; 
-}
-
-.conditions-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 8px; 
-}
-
-.condition {
-    display: flex; /* Use flex for better control */
-    flex-direction: column; /* Stack info/details/message */
-    background: rgba(255, 255, 255, 0.03); 
-    border-radius: 4px; 
-    padding: 8px 12px; 
-    gap: 4px; /* Space between rows */
-}
-
-.condition-info {
-    display: flex;
-    justify-content: space-between; /* Push status to the right */
-    align-items: center;
-    gap: 8px; 
-}
-
-.condition-type {
-    font-size: 12px; 
-    color: rgba(255, 255, 255, 0.9); 
-    font-weight: 500;
-}
-
-.condition-status {
-    font-size: 12px; 
-    font-weight: 500;
-    /* Color is handled by status-true/status-false */
-}
-
-.condition-details {
-    display: flex;
-    justify-content: space-between; /* Push time to the right */
-    align-items: center;
-    gap: 12px; 
-}
-
-.condition-reason {
-    font-size: 12px; 
-    color: rgba(255, 255, 255, 0.6); 
-}
-
-.condition-time {
-    font-size: 12px; 
-    color: rgba(255, 255, 255, 0.5); 
-    white-space: nowrap;
-}
-
-.condition-message {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.7); /* Slightly dimmer than main text */
-    margin-top: 4px;
-    padding-top: 4px;
-    border-top: 1px dashed rgba(255, 255, 255, 0.1); /* Subtle separator */
 }

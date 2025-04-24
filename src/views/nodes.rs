@@ -140,7 +140,7 @@ pub fn Nodes() -> Element {
                             div { class: "resource-metrics",
                                 div { class: "metric",
                                     span { class: "metric-label", "CPU" }
-                                    div { class: "progress-bar",
+                                    div { class: "node-progress-bar",
                                         div {
                                             class: "progress-fill",
                                             style: "width: {node.cpu_usage}%"
@@ -150,7 +150,7 @@ pub fn Nodes() -> Element {
                                 }
                                 div { class: "metric",
                                     span { class: "metric-label", "Memory" }
-                                    div { class: "progress-bar",
+                                    div { class: "node-progress-bar",
                                         div {
                                             class: "progress-fill",
                                             style: "width: {node.memory_usage}%"
@@ -160,7 +160,7 @@ pub fn Nodes() -> Element {
                                 }
                                 div { class: "metric",
                                     span { class: "metric-label", "Storage" }
-                                    div { class: "progress-bar",
+                                    div { class: "node-progress-bar",
                                         div {
                                             class: "progress-fill",
                                             style: "width: {node.storage_usage}%"
@@ -201,20 +201,20 @@ pub fn Nodes() -> Element {
                                 h4 { "Node Conditions" }
                                 div { class: "conditions-list",
                                     div { class: "condition status-healthy",
-                                        span { class: "condition-type", "Ready" }
-                                        span { class: "condition-status", "True" }
+                                        span { class: "node-condition-type", "Ready" }
+                                        span { class: "node-condition-status", "True" }
                                     }
                                     div { class: "condition status-healthy",
-                                        span { class: "condition-type", "MemoryPressure" }
-                                        span { class: "condition-status", "False" }
+                                        span { class: "node-condition-type", "MemoryPressure" }
+                                        span { class: "node-condition-status", "False" }
                                     }
                                     div { class: "condition status-healthy",
-                                        span { class: "condition-type", "DiskPressure" }
-                                        span { class: "condition-status", "False" }
+                                        span { class: "node-condition-type", "DiskPressure" }
+                                        span { class: "node-condition-status", "False" }
                                     }
                                     div { class: "condition status-healthy",
-                                        span { class: "condition-type", "PIDPressure" }
-                                        span { class: "condition-status", "False" }
+                                        span { class: "node-condition-type", "PIDPressure" }
+                                        span { class: "node-condition-status", "False" }
                                     }
                                 }
                             }

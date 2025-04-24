@@ -1,97 +1,60 @@
 /* --- Container and Header (Dark Theme) --- */
-.configmaps-container { /* Renamed */
+.configmaps-container {
     padding: 24px;
     max-width: 1400px; /* Consistent max-width */
     margin: 0 auto;
 }
 
-.configmaps-header { /* Renamed */
+.configmaps-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
 }
 
-.header-left {
-    display: flex;
-    flex-direction: column; /* Stack title and controls */
-    gap: 16px; /* Gap between title and controls */
-}
-
-.header-left h1 {
-    font-size: 24px; /* Match */
-    font-weight: 500; /* Match */
-    color: rgba(255, 255, 255, 0.9);
-    margin: 0;
-}
-
-.header-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* Match */
-    flex-wrap: wrap; /* Allow wrapping */
-}
-
 /* --- Controls (Dark Theme) --- */
 .search-container {
     position: relative;
-    width: 140px; /* Match */
+    width: 140px;
     flex-shrink: 0;
 }
 
-.search-input {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 13px; /* Match */
-    padding: 6px 10px; /* Match */
-    width: 100%;
-    height: 32px; /* Match */
-    transition: all 0.2s ease;
-}
-.search-input:focus {
-    outline: none;
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.configmap-count { /* Renamed */
-    color: rgba(255, 255, 255, 0.6); /* Match */
-    font-size: 13px; /* Match */
+.configmap-count { 
+    color: rgba(255, 255, 255, 0.6); 
+    font-size: 13px;
     white-space: nowrap;
 }
 
 .header-actions {
     display: flex;
-    gap: 10px; /* Match */
+    gap: 10px;
 }
 
 /* --- ConfigMaps Grid (One per line) --- */
-.configmaps-grid { /* Renamed */
+.configmaps-grid { 
     display: grid;
     grid-template-columns: 1fr; /* Force one column */
-    gap: 20px; /* Match */
+    gap: 20px;
 }
 
 /* --- ConfigMap Card (Dark Theme) --- */
-.configmap-card { /* Renamed */
-    background: rgba(255, 255, 255, 0.05); /* Match */
-    border-radius: 8px; /* Match */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* Match */
+.configmap-card { 
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     overflow: hidden;
 }
 
-.configmap-header-card { /* Renamed */
+.configmap-header-card {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px; /* Match */
+    padding: 12px;
     gap: 12px; /* Gap between title, info, controls */
     flex-wrap: wrap; /* Allow wrapping */
 }
 
-.configmap-title { /* Renamed */
+.configmap-title {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -99,7 +62,7 @@
     min-width: 150px; /* Ensure title doesn't get too squished */
 }
 
-.configmap-title h3 { /* Renamed */
+.configmap-title h3 {
     font-size: 16px;
     font-weight: 500;
     color: rgba(255, 255, 255, 0.9);
@@ -109,7 +72,7 @@
     text-overflow: ellipsis;
 }
 
-.configmap-info-short { /* Renamed */
+.configmap-info-short { 
     display: flex;
     align-items: center;
     gap: 16px; /* Space between info items */
@@ -131,12 +94,11 @@
     max-width: none;
 }
 
-
 /* --- Status Badge Styles (Dark Theme) --- */
 .status-badge {
-    padding: 2px 8px; /* Match */
+    padding: 2px 8px;
     border-radius: 12px;
-    font-size: 11px; /* Match */
+    font-size: 11px;
     font-weight: 500;
     flex-shrink: 0;
     white-space: nowrap;
@@ -151,20 +113,19 @@
     color: rgba(255, 255, 255, 0.7);
 }
 
-
-.configmap-controls { /* Renamed */
+.configmap-controls {
     display: flex;
     align-items: center;
-    gap: 6px; /* Match */
+    gap: 6px;
     z-index: 1; /* Ensure controls are clickable */
     flex-shrink: 0; /* Prevent controls from shrinking */
 }
 
 /* --- ConfigMap Details (Dark Theme) --- */
-.configmap-details { /* Renamed */
-    padding: 0 12px 12px 12px; /* Match */
-    border-top: 1px solid rgba(255, 255, 255, 0.1); /* Match */
-    animation: slideDown 0.2s ease-out; /* Match */
+.configmap-details {
+    padding: 0 12px 12px 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    animation: slideDown 0.2s ease-out;
     display: flex;
     flex-direction: column;
     gap: 16px; /* Spacing between sections */
@@ -180,91 +141,6 @@
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-/* --- Labels and Annotations Section (Dark Theme) - Re-use --- */
-.labels-section {
-    margin: 0; /* Match */
-}
-
-.labels-section h4 {
-    font-size: 14px; /* Match */
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.9); /* Match */
-    margin: 0 0 8px 0; /* Match */
-}
-
-.labels-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px; /* Match */
-}
-
-.label {
-    display: inline-flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.05); /* Match */
-    border-radius: 4px; /* Match */
-    padding: 4px 8px; /* Match */
-    font-size: 12px; /* Match */
-    max-width: 100%; /* Prevent overflow */
-}
-
-.label-key {
-    color: rgba(255, 255, 255, 0.6); /* Match */
-    margin-right: 4px; /* Match */
-    white-space: nowrap;
-}
-
-.label-value {
-    color: rgba(255, 255, 255, 0.9); /* Match */
-    word-break: break-all; /* Allow long values to wrap */
-}
-
-/* --- Data Section (Dark Theme) --- */
-.data-section {
-    margin: 0;
-}
-
-.data-section h4 {
-    font-size: 14px;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.9);
-    margin: 0 0 8px 0;
-}
-
-.data-grid {
-    display: flex;
-    flex-direction: column; /* Stack key-value pairs */
-    gap: 8px;
-}
-
-.data-item {
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 4px;
-    padding: 8px 12px;
-    font-size: 12px;
-    display: flex;
-    flex-direction: column; /* Stack key and value */
-    gap: 4px;
-}
-
-.data-key {
-    color: rgba(255, 255, 255, 0.6);
-    font-weight: 500;
-    word-break: break-all; /* Allow long keys to wrap */
-}
-
-.data-value {
-    color: rgba(255, 255, 255, 0.9);
-    font-family: monospace; /* Use monospace for data */
-    white-space: pre-wrap; /* Preserve whitespace and wrap */
-    word-break: break-all; /* Break long words/lines */
-    max-height: 200px; /* Limit height */
-    overflow-y: auto; /* Add scroll if needed */
-    background-color: rgba(0, 0, 0, 0.2); /* Slightly darker background for value */
-    padding: 4px 6px;
-    border-radius: 3px;
 }
 
 .data-value.binary-placeholder i {

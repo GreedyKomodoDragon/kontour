@@ -183,7 +183,7 @@ pub fn Namespaces() -> Element {
                             div { class: "resource-metrics",
                                 div { class: "metric",
                                     span { class: "metric-label", "CPU" }
-                                    div { class: "progress-bar",
+                                    div { class: "namespace-progress-bar",
                                         div {
                                             class: "progress-fill",
                                             style: "width: {(ns.resource_quota.cpu_used.parse::<f32>().unwrap() / ns.resource_quota.cpu_limit.parse::<f32>().unwrap() * 100.0)}%"
@@ -193,7 +193,7 @@ pub fn Namespaces() -> Element {
                                 }
                                 div { class: "metric",
                                     span { class: "metric-label", "Memory" }
-                                    div { class: "progress-bar",
+                                    div { class: "namespace-progress-bar",
                                         div {
                                             class: "progress-fill",
                                             style: "width: {(ns.resource_quota.memory_used.replace(\"Gi\", \"\").parse::<f32>().unwrap() / ns.resource_quota.memory_limit.replace(\"Gi\", \"\").parse::<f32>().unwrap() * 100.0)}%"
@@ -203,7 +203,7 @@ pub fn Namespaces() -> Element {
                                 }
                                 div { class: "metric",
                                     span { class: "metric-label", "Pods" }
-                                    div { class: "progress-bar",
+                                    div { class: "namespace-progress-bar",
                                         div {
                                             class: "progress-fill",
                                             style: "width: {(ns.resource_quota.pods_used as f32 / ns.resource_quota.pods_limit as f32 * 100.0)}%"
