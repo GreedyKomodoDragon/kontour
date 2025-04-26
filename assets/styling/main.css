@@ -379,3 +379,21 @@ html, body {
 .search-input::placeholder {
     color: rgba(255, 255, 255, 0.4);
 }
+
+.error-banner {
+    background: rgba(255, 0, 0, 0.1);
+    color: rgba(255, 0, 0, 0.9);
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    margin: 10px 0;
+}
+
+.loading-banner {
+    background: rgba(255, 255, 0, 0.1);
+    color: rgba(255, 255, 0, 0.9);
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    margin: 10px 0;
+}
