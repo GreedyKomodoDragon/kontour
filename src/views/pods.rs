@@ -1,8 +1,8 @@
-use dioxus::prelude::*;
-use k8s_openapi::api::core::v1::Pod;
-use kube::{api::ListParams, Api, Client};
+use std::collections::BTreeMap;
 
-use crate::views::pods; // <-- Add this import
+use dioxus::{logger::tracing, prelude::*};
+use k8s_openapi::{api::core::v1::Pod, apimachinery::pkg::api::resource::Quantity};
+use kube::{api::ListParams, Api, Client};
 
 const PODS_CSS: Asset = asset!("/assets/styling/pods.css");
 
@@ -31,7 +31,7 @@ struct ContainerData {
     restarts: u32,
     cpu_usage: f32,
     memory_usage: String,
-    memory_limit: String,
+    memory_limit: std::option::Option<Quantity>,
 }
 
 #[derive(Clone)]
@@ -41,6 +41,23 @@ struct PodCondition {
     last_transition: String,
     reason: String,
 }
+
+/// Parses a Kubernetes quantity string like "512Mi", "2Gi", "1024Ki" into a float (in MiB)
+fn parse_quantity_string(q: &str) -> f32 {
+    if let Some(stripped) = q.strip_suffix("Ki") {
+        stripped.parse::<f32>().unwrap_or(0.0) / 1024.0
+    } else if let Some(stripped) = q.strip_suffix("Mi") {
+        stripped.parse::<f32>().unwrap_or(0.0)
+    } else if let Some(stripped) = q.strip_suffix("Gi") {
+        stripped.parse::<f32>().unwrap_or(0.0) * 1024.0
+    } else if let Some(stripped) = q.strip_suffix("Ti") {
+        stripped.parse::<f32>().unwrap_or(0.0) * 1024.0 * 1024.0
+    } else {
+        // Assume it's already a plain number in MiB
+        q.parse::<f32>().unwrap_or(0.0)
+    }
+}
+
 
 #[component]
 pub fn Pods() -> Element { // <-- Remove client prop
@@ -130,12 +147,44 @@ pub fn Pods() -> Element { // <-- Remove client prop
                         status: pod.status.clone().unwrap().phase.unwrap_or_default(),
                         phase: pod.status.clone().unwrap().phase.unwrap_or_default(),
                         age: "1h".to_string(), // Placeholder for age
-                        ready_containers: (1, 2), // Placeholder for ready containers
+                        ready_containers: {
+                            let total = pod.spec.as_ref()
+                                .map(|spec| spec.containers.len() as u32)
+                                .unwrap_or(0);
+                            let ready = pod.status.as_ref()
+                                .map(|status| status.container_statuses.as_ref()
+                                    .map(|containers| containers.iter()
+                                        .filter(|c| c.ready)
+                                        .count() as u32)
+                                    .unwrap_or(0))
+                                .unwrap_or(0);
+                            (ready, total)
+                        },
                         restart_count: 0, // Placeholder for restart count
                         ip: pod.status.clone().unwrap().pod_ip.unwrap_or_default(),
                         node: pod.spec.clone().unwrap().node_name.unwrap_or_default(),
                         qos_class: "BestEffort".to_string(), // Placeholder for QoS class
-                        containers: vec![], // Placeholder for containers
+                        containers: pod
+                            .spec
+                            .as_ref()
+                            .map(|spec| {
+                                spec.containers.iter().map(|c| {
+                                    ContainerData {
+                                        name: c.name.clone(),
+                                        image: c.image.clone().unwrap_or_default(),
+                                        status: "Unknown".to_string(), // Placeholder
+                                        restarts: 0,                   // Placeholder
+                                        cpu_usage: 0.0,                 // Placeholder
+                                        memory_usage: "12Mi".to_string(),   // Placeholder
+                                        memory_limit: c.resources.as_ref()
+                                            .and_then(|res| res.limits.as_ref())
+                                            .and_then(|limits| {
+                                                limits.get("memory").cloned()
+                                            }),
+                                    }
+                                }).collect()
+                            })
+                            .unwrap_or_default(),
                         conditions: vec![], // Placeholder for conditions
                         labels: vec![], // Placeholder for labels
                     };
@@ -143,7 +192,7 @@ pub fn Pods() -> Element { // <-- Remove client prop
                         // Add Tailwind: padding
                         div {
                             key: "{pod_data.name}",
-                            class: "pod-card p-10",
+                            class: "pod-card",
                             div { 
                                 class: "pod-header",
                                 // Optional: Keep header click commented or remove if only button should toggle
@@ -245,37 +294,104 @@ pub fn Pods() -> Element { // <-- Remove client prop
                                     div { class: "containers-section",
                                         h4 { "Containers ({pod_data.ready_containers.0}/{pod_data.ready_containers.1})" }
                                         div { class: "containers-grid",
-                                            {pod_data.containers.iter().map(|container| rsx! {
-                                                div {
-                                                    key: "{container.name}",
-                                                    class: "container-card",
-                                                    div { class: "container-header",
-                                                        div { class: "container-title",
-                                                            h5 { "{container.name}" }
-                                                            span { class: "container-image", "{container.image}" }
-                                                        }
-                                                        span { class: "status-badge status-{container.status.to_lowercase()}", "{container.status}" }
-                                                    }
-                                                    div { class: "resource-metrics",
-                                                        div { class: "metric",
-                                                            span { class: "metric-label", "CPU" }
-                                                            div { class: "progress-bar",
-                                                                div {
-                                                                    class: "progress-fill",
-                                                                    style: "width: {container.cpu_usage * 100.0}%"
-                                                                }
+                                            {pod_data.containers.iter().map(|container| {
+                                                // Calculate memory usage percent safely
+                                                // log out the memory usage and limit
+                                                // Calculate memory usage percent safely
+                                                tracing::debug!(
+                                                    "Memory Usage: {}, Memory Limit: {}",
+                                                    container.memory_usage,
+                                                    container.memory_limit.as_ref().map(|q| q.0.clone()).unwrap_or_default()
+                                                );
+                                                
+
+                                                let memory_usage = parse_quantity_string(&container.memory_usage);
+                                                
+                                                let memory_limit = container.memory_limit
+                                                    .as_ref()
+                                                    .map(|q| parse_quantity_string(&q.0))
+                                                    .unwrap_or(0.0);
+                                                
+                                                let percent = if memory_limit > 0.0 {
+                                                    (memory_usage / memory_limit) * 100.0
+                                                } else {
+                                                    0.0
+                                                };
+                                                
+                                                tracing::debug!("Memory Usage Percent: {}", percent);
+
+                                                // Extract limits and requests for display
+                                                let (limits_str, requests_str) = pod
+                                                    .spec
+                                                    .as_ref()
+                                                    .and_then(|spec| {
+                                                        spec.containers.iter().find(|c| c.name == container.name)
+                                                    })
+                                                    .map(|c| {
+                                                        let limits = c.resources.as_ref()
+                                                            .and_then(|r| r.limits.as_ref())
+                                                            .map(|l| {
+                                                                l.iter()
+                                                                    .map(|(k, v)| format!("{}: {}", k, v.0))
+                                                                    .collect::<Vec<_>>()
+                                                                    .join(", ")
+                                                            })
+                                                            .unwrap_or_else(|| "None".to_string());
+                                                        let requests = c.resources.as_ref()
+                                                            .and_then(|r| r.requests.as_ref())
+                                                            .map(|r| {
+                                                                r.iter()
+                                                                    .map(|(k, v)| format!("{}: {}", k, v.0))
+                                                                    .collect::<Vec<_>>()
+                                                                    .join(", ")
+                                                            })
+                                                            .unwrap_or_else(|| "None".to_string());
+                                                        (limits, requests)
+                                                    })
+                                                    .unwrap_or_else(|| ("None".to_string(), "None".to_string()));
+
+                                                rsx! {
+                                                    div {
+                                                        key: "{container.name}",
+                                                        class: "container-card",
+                                                        div { class: "container-header",
+                                                            div { class: "container-title",
+                                                                h5 { "{container.name}" }
+                                                                span { class: "container-image", "{container.image}" }
                                                             }
-                                                            span { class: "metric-value", "{container.cpu_usage * 100.0:.1}%" }
+                                                            span { class: "status-badge status-{container.status.to_lowercase()}", "{container.status}" }
                                                         }
-                                                        div { class: "metric",
-                                                            span { class: "metric-label", "Memory" }
-                                                            div { class: "progress-bar",
-                                                                div {
-                                                                    class: "progress-fill",
-                                                                    style: "width: {(container.memory_usage.replace(\"Gi\", \"\").replace(\"Mi\", \"\").parse::<f32>().unwrap() / container.memory_limit.replace(\"Gi\", \"\").replace(\"Mi\", \"\").parse::<f32>().unwrap() * 100.0)}%"
+                                                        div { class: "resource-metrics",
+                                                            div { class: "metric",
+                                                                span { class: "metric-label", "CPU" }
+                                                                div { class: "progress-bar",
+                                                                    div {
+                                                                        class: "progress-fill",
+                                                                        style: "width: {container.cpu_usage * 100.0}%"
+                                                                    }
                                                                 }
+                                                                span { class: "metric-value", "{container.cpu_usage * 100.0:.1}%" }
                                                             }
-                                                            span { class: "metric-value", "{container.memory_usage}/{container.memory_limit}" }
+                                                            div { class: "metric",
+                                                                span { class: "metric-label", "Memory" }
+                                                                div { class: "progress-bar",
+                                                                    div {
+                                                                        class: "progress-fill",
+                                                                        style: "width: {percent}%"
+                                                                    }
+                                                                }
+                                                                span { class: "metric-value", "{percent}%" }
+                                                            }
+                                                        }
+                                                        div { class: "container-limits-requests",
+                                                            div { class: "limits",
+                                                                span { class: "limits-label", "Resource Limits:" }
+                                                                span { class: "limits-value", "{limits_str}" }
+                                                            }
+                                                            div { class: "requests",
+                                                                span { class: "requests-label", "Resource Requests:" }
+                                                                span { class: "requests-value", "{requests_str}" }
+                                                            }
                                                         }
                                                     }
                                                 }

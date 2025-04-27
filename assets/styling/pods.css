@@ -237,6 +237,33 @@
     flex-shrink: 0;
 }
 
+/* Limits and Requests section for containers */
+.container-limits-requests {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 10px;
+}
+
+.limits, .requests {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.limits-label, .requests-label {
+    color: #facc15; /* yellow-400 for emphasis */
+    font-weight: 500;
+    margin-right: 4px;
+}
+
+.limits-value, .requests-value {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 400;
+    word-break: break-all;
+}
+
 .pod-controls {
     display: flex;
     align-items: center; /* Vertically align buttons */
