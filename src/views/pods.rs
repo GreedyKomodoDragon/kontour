@@ -1,4 +1,8 @@
 use dioxus::prelude::*;
+use k8s_openapi::api::core::v1::Pod;
+use kube::{api::ListParams, Api, Client};
+
+use crate::views::pods; // <-- Add this import
 
 const PODS_CSS: Asset = asset!("/assets/styling/pods.css");
 
@@ -39,121 +43,39 @@ struct PodCondition {
 }
 
 #[component]
-pub fn Pods() -> Element {
+pub fn Pods() -> Element { // <-- Remove client prop
+    let client = use_context::<Client>();
+
     let selected_status = use_signal(|| "all");
     let selected_namespace = use_signal(|| "all");
     let search_query = use_signal(String::new);
-    let mut expanded_pods = use_signal(|| std::collections::HashSet::<String>::new()); // Added `mut`
-    let pods = use_signal(|| vec![
-        PodData {
-            name: "nginx-deployment-6b474476c4-x8t7r".into(),
-            namespace: "default".into(),
-            status: "Running".into(),
-            phase: "Running".into(),
-            age: "2d".into(),
-            ready_containers: (1, 1),
-            restart_count: 0,
-            ip: "10.244.0.15".into(),
-            node: "worker-1".into(),
-            qos_class: "Burstable".into(),
-            containers: vec![
-                ContainerData {
-                    name: "nginx".into(),
-                    image: "nginx:1.25".into(),
-                    status: "Running".into(),
-                    restarts: 0,
-                    cpu_usage: 0.15,
-                    memory_usage: "32Mi".into(),
-                    memory_limit: "128Mi".into(),
-                }
-            ],
-            conditions: vec![
-                PodCondition {
-                    condition_type: "Ready".into(),
-                    status: "True".into(),
-                    last_transition: "2d".into(),
-                    reason: "PodHasBeenReady".into(),
-                },
-                PodCondition {
-                    condition_type: "ContainersReady".into(),
-                    status: "True".into(),
-                    last_transition: "2d".into(),
-                    reason: "ContainersAreReady".into(),
-                },
-            ],
-            labels: vec![
-                ("app".into(), "nginx".into()),
-                ("pod-template-hash".into(), "6b474476c4".into()),
-            ],
-        },
-        PodData {
-            name: "prometheus-7d7d4769b8-zk9j5".into(),
-            namespace: "monitoring".into(),
-            status: "Running".into(),
-            phase: "Running".into(),
-            age: "5d".into(),
-            ready_containers: (2, 2),
-            restart_count: 1,
-            ip: "10.244.0.18".into(),
-            node: "worker-2".into(),
-            qos_class: "Guaranteed".into(),
-            containers: vec![
-                ContainerData {
-                    name: "prometheus".into(),
-                    image: "prom/prometheus:v2.45".into(),
-                    status: "Running".into(),
-                    restarts: 1,
-                    cpu_usage: 0.45,
-                    memory_usage: "750Mi".into(),
-                    memory_limit: "1Gi".into(),
-                },
-                ContainerData {
-                    name: "config-reloader".into(),
-                    image: "jimmidyson/configmap-reload:v0.8.0".into(),
-                    status: "Running".into(),
-                    restarts: 0,
-                    cpu_usage: 0.05,
-                    memory_usage: "12Mi".into(),
-                    memory_limit: "25Mi".into(),
-                }
-            ],
-            conditions: vec![
-                PodCondition {
-                    condition_type: "Ready".into(),
-                    status: "True".into(),
-                    last_transition: "5d".into(),
-                    reason: "PodHasBeenReady".into(),
-                },
-                PodCondition {
-                    condition_type: "ContainersReady".into(),
-                    status: "True".into(),
-                    last_transition: "5d".into(),
-                    reason: "ContainersAreReady".into(),
-                },
-            ],
-            labels: vec![
-                ("app".into(), "prometheus".into()),
-                ("pod-template-hash".into(), "7d7d4769b8".into()),
-            ],
-        },
-    ]);
+    let mut expanded_pods = use_signal(|| std::collections::HashSet::<String>::new());
 
-    let filtered_pods = {
-        let pods = pods.clone();
-        let selected_status = selected_status.clone();
-        let selected_namespace = selected_namespace.clone();
+    let mut pods = use_signal(|| Vec::<Pod>::new());
 
-        use_signal(move || {
-            let pods = pods.read();
-            pods.iter()
-                .filter(|&pod| {
-                    (selected_status() == "all" || pod.status == selected_status()) &&
-                    (selected_namespace() == "all" || pod.namespace == selected_namespace())
-                })
-                .cloned() // if needed
-                .collect::<Vec<_>>()
-        })
-    };
+
+    use_effect(move || {
+        let client = client.clone();
+        let ns = selected_namespace();
+        spawn(async move {
+            // let pods_api: Api<Pod> = Api::namespaced(client, namespace);
+
+            // Create an Api for Pod
+            let pds: Api<Pod> = Api::all(client);
+
+            // List all pods in the specified namespace
+            // let namespace = if ns == "all" { "" } else { ns };
+            let params = ListParams::default();
+            match pds.list(&params).await {
+                Ok(pod_list) => {
+                    pods.set(pod_list.items);
+                }
+                Err(e) => {
+                    println!("Error fetching pods: {:?}", e);
+                }
+            }
+        });
+    });
 
     rsx! {
         document::Link { rel: "stylesheet", href: PODS_CSS }
@@ -189,7 +111,7 @@ pub fn Pods() -> Element {
                             option { value: "Failed", "Failed" }
                             option { value: "Succeeded", "Succeeded" }
                         }
-                        span { class: "pod-count", "{filtered_pods.read().len()} pods" }
+                        span { class: "pod-count", "{pods().len()} pods" }
                     }
                 }
                 div { class: "header-actions",
@@ -200,40 +122,53 @@ pub fn Pods() -> Element {
             }
 
             div { class: "pods-grid",
-                {filtered_pods.read().iter().map(|pod| {
-                    let is_expanded = expanded_pods.read().contains(&pod.name);
-                    let pod_name_clone = pod.name.clone();
+                {pods().iter().map(|pod| {
+                    let is_expanded = expanded_pods.read().contains(&pod.metadata.name.clone().unwrap());
+                    let pod_data = PodData {
+                        name: pod.metadata.name.clone().unwrap(),
+                        namespace: pod.metadata.namespace.clone().unwrap(),
+                        status: pod.status.clone().unwrap().phase.unwrap_or_default(),
+                        phase: pod.status.clone().unwrap().phase.unwrap_or_default(),
+                        age: "1h".to_string(), // Placeholder for age
+                        ready_containers: (1, 2), // Placeholder for ready containers
+                        restart_count: 0, // Placeholder for restart count
+                        ip: pod.status.clone().unwrap().pod_ip.unwrap_or_default(),
+                        node: pod.spec.clone().unwrap().node_name.unwrap_or_default(),
+                        qos_class: "BestEffort".to_string(), // Placeholder for QoS class
+                        containers: vec![], // Placeholder for containers
+                        conditions: vec![], // Placeholder for conditions
+                        labels: vec![], // Placeholder for labels
+                    };
                     rsx! {
                         // Add Tailwind: padding
                         div {
-                            key: "{pod.name}",
-                            class: "pod-card p-10", // Test Tailwind padding
+                            key: "{pod_data.name}",
+                            class: "pod-card p-10",
                             div { 
                                 class: "pod-header",
                                 // Optional: Keep header click commented or remove if only button should toggle
                                 // onclick: move |_| {
                                 //     let mut set = expanded_pods.write();
-                                //     if set.contains(&pod.name) {
-                                //         set.remove(&pod.name);
+                                //     if set.contains(&pod_data.name) {
+                                //         set.remove(&pod_data.name);
                                 //     } else {
-                                //         set.insert(pod.name.clone());
+                                //         set.insert(pod_data.name.clone());
                                 //     }
                                 // },
                                 div { class: "pod-title",
-                                    h3 { "{pod.name}" }
-                                    span { class: "status-badge status-{pod.status.to_lowercase()}", "{pod.status}" }
+                                    h3 { "{pod_data.name}" }
+                                    span { class: "status-badge status-{pod_data.status.to_lowercase()}", "{pod_data.status}" }
                                 }
                                 div { class: "pod-controls",
                                     button { 
                                         class: "btn-icon expand-toggle",
                                         onclick: move |evt| { 
                                             evt.stop_propagation();
-                                            // Now this is allowed because expanded_pods is mutable
                                             let mut set = expanded_pods.write(); 
-                                            if set.contains(&pod_name_clone) {
-                                                set.remove(&pod_name_clone);
+                                            if set.contains(&pod_data.name.clone()) {
+                                                set.remove(&pod_data.name.clone());
                                             } else {
-                                                set.insert(pod_name_clone.clone());
+                                                set.insert(pod_data.name.clone());
                                             }
                                         },
                                         title: if is_expanded { "Collapse" } else { "Expand" },
@@ -266,29 +201,29 @@ pub fn Pods() -> Element {
                                         div { class: "info-group",
                                             div { class: "info-item",
                                                 span { class: "info-label", "Namespace" }
-                                                span { class: "info-value", "{pod.namespace}" }
+                                                span { class: "info-value", "{pod_data.namespace}" }
                                             }
                                             div { class: "info-item",
                                                 span { class: "info-label", "Node" }
-                                                span { class: "info-value", "{pod.node}" }
+                                                span { class: "info-value", "{pod_data.node}" }
                                             }
                                             div { class: "info-item",
                                                 span { class: "info-label", "IP" }
-                                                span { class: "info-value", "{pod.ip}" }
+                                                span { class: "info-value", "{pod_data.ip}" }
                                             }
                                         }
                                         div { class: "info-group",
                                             div { class: "info-item",
                                                 span { class: "info-label", "Age" }
-                                                span { class: "info-value", "{pod.age}" }
+                                                span { class: "info-value", "{pod_data.age}" }
                                             }
                                             div { class: "info-item",
                                                 span { class: "info-label", "QoS Class" }
-                                                span { class: "info-value", "{pod.qos_class}" }
+                                                span { class: "info-value", "{pod_data.qos_class}" }
                                             }
                                             div { class: "info-item",
                                                 span { class: "info-label", "Restarts" }
-                                                span { class: "info-value", "{pod.restart_count}" }
+                                                span { class: "info-value", "{pod_data.restart_count}" }
                                             }
                                         }
                                     }
@@ -296,7 +231,7 @@ pub fn Pods() -> Element {
                                     div { class: "labels-section",
                                         h4 { "Labels" }
                                         div { class: "labels-grid",
-                                            {pod.labels.iter().map(|(key, value)| rsx! {
+                                            {pod_data.labels.iter().map(|(key, value)| rsx! {
                                                 div {
                                                     key: "{key}",
                                                     class: "label",
@@ -308,9 +243,9 @@ pub fn Pods() -> Element {
                                     }
 
                                     div { class: "containers-section",
-                                        h4 { "Containers ({pod.ready_containers.0}/{pod.ready_containers.1})" }
+                                        h4 { "Containers ({pod_data.ready_containers.0}/{pod_data.ready_containers.1})" }
                                         div { class: "containers-grid",
-                                            {pod.containers.iter().map(|container| rsx! {
+                                            {pod_data.containers.iter().map(|container| rsx! {
                                                 div {
                                                     key: "{container.name}",
                                                     class: "container-card",
@@ -351,7 +286,7 @@ pub fn Pods() -> Element {
                                     div { class: "conditions-section",
                                         h4 { "Conditions" }
                                         div { class: "conditions-grid",
-                                            {pod.conditions.iter().map(|condition| rsx! {
+                                            {pod_data.conditions.iter().map(|condition| rsx! {
                                                 div {
                                                     key: "{condition.condition_type}",
                                                     class: "condition",
