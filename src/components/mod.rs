@@ -5,3 +5,6 @@
 mod hero;
 pub use hero::Hero;
 pub mod kubeconfig_name_dialog;
+
+mod pod_item;
+pub use pod_item::PodItem;
