@@ -7,29 +7,27 @@ use crate::components::PodItem;
 const PODS_CSS: Asset = asset!("/assets/styling/pods.css");
 
 #[component]
-pub fn Pods() -> Element { // <-- Remove client prop
+pub fn Pods() -> Element {
     let client = use_context::<Client>();
 
     let selected_status = use_signal(|| "all");
-    let selected_namespace = use_signal(|| "all");
+    let mut selected_namespace = use_signal(|| "all".to_string());
     let search_query = use_signal(String::new);
-
     let mut pods = use_signal(|| Vec::<Pod>::new());
-
 
     use_effect(move || {
         let client = client.clone();
         let ns = selected_namespace();
         spawn(async move {
-            // let pods_api: Api<Pod> = Api::namespaced(client, namespace);
-
-            // Create an Api for Pod
-            let pds: Api<Pod> = Api::all(client);
-
-            // List all pods in the specified namespace
-            // let namespace = if ns == "all" { "" } else { ns };
             let params = ListParams::default();
-            match pds.list(&params).await {
+            
+            match if ns == "all" {
+                // List pods across all namespaces
+                Api::all(client).list(&params).await
+            } else {
+                // List pods in specific namespace
+                Api::namespaced(client, &ns).list(&params).await
+            } {
                 Ok(pod_list) => {
                     pods.set(pod_list.items);
                 }
@@ -42,13 +40,10 @@ pub fn Pods() -> Element { // <-- Remove client prop
 
     rsx! {
         document::Link { rel: "stylesheet", href: PODS_CSS }
-        // Add Tailwind: background color
-        div { class: "pods-container", // Test Tailwind bg
-            // Add Tailwind: border
-            div { class: "pods-header", // Test Tailwind border
+        div { class: "pods-container",
+            div { class: "pods-header",
                 div { class: "header-left",
-                    // Add Tailwind: text color
-                    h1 { class: "text-yellow-300", "Pods" } // Test Tailwind text color
+                    h1 { class: "text-yellow-300", "Pods" }
                     div { class: "header-controls",
                         div { class: "search-container",
                             input {
@@ -61,9 +56,13 @@ pub fn Pods() -> Element { // <-- Remove client prop
                         select {
                             class: "namespace-select",
                             value: "{selected_namespace.read()}",
+                            onchange: move |evt| {
+                                selected_namespace.set(evt.value());
+                            },
                             option { value: "all", "All Namespaces" }
                             option { value: "default", "default" }
                             option { value: "monitoring", "monitoring" }
+                            option { value: "kube-system", "kube-system" }
                         }
                         select {
                             class: "status-select",
@@ -78,8 +77,7 @@ pub fn Pods() -> Element { // <-- Remove client prop
                     }
                 }
                 div { class: "header-actions",
-                    // Add Tailwind: hover effect
-                    button { class: "btn btn-primary", "Create Pod" } // Test Tailwind hover
+                    button { class: "btn btn-primary", "Create Pod" }
                     button { class: "btn btn-secondary", "Refresh" }
                 }
             }

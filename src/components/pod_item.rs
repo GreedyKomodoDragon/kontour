@@ -1,4 +1,4 @@
-use dioxus::{logger::tracing, prelude::*};
+use dioxus::{prelude::*};
 use k8s_openapi::{api::core::v1::Pod, apimachinery::pkg::api::resource::Quantity};
 
 
@@ -124,7 +124,7 @@ pub fn PodItem(props: PodItemProps) -> Element {
                     let last_transition = condition.last_transition_time.as_ref()
                         .map(|t| t.0.to_rfc3339())
                         .unwrap_or_default();
-                    
+
                     PodCondition {
                         condition_type: condition.type_.clone(),
                         status: condition.status.clone(),
