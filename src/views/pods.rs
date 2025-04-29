@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 use k8s_openapi::api::core::v1::Pod;
 use kube::{api::ListParams, Api, Client};
 
-use crate::components::{PodItem, NamespaceSelector};
+use crate::components::{PodItem, NamespaceSelector, StatusSelector};
 
 const PODS_CSS: Asset = asset!("/assets/styling/pods.css");
 
@@ -10,7 +10,7 @@ const PODS_CSS: Asset = asset!("/assets/styling/pods.css");
 pub fn Pods() -> Element {
     let client: Client = use_context::<Client>();
 
-    let selected_status = use_signal(|| "All");
+    let mut selected_status = use_signal(|| "All".to_string());
     let mut selected_namespace = use_signal(|| "All".to_string());
     let search_query = use_signal(String::new);
     let mut pods = use_signal(|| Vec::<Pod>::new());
@@ -18,14 +18,18 @@ pub fn Pods() -> Element {
     use_effect(move || {
         let client = client.clone();
         let ns = selected_namespace();
+        let status = selected_status();
         spawn(async move {
-            let params = ListParams::default();
+            let params = if status == "All" {
+                ListParams::default()
+            } else {
+                ListParams::default()
+                    .fields(&format!("status.phase={}", status))
+            };
             
             match if ns == "All" {
-                // List pods across all namespaces
                 Api::all(client).list(&params).await
             } else {
-                // List pods in specific namespace
                 Api::namespaced(client, &ns).list(&params).await
             } {
                 Ok(pod_list) => {
@@ -57,14 +61,9 @@ pub fn Pods() -> Element {
                             selected_namespace: selected_namespace(),
                             on_change: move |ns| selected_namespace.set(ns)
                         }
-                        select {
-                            class: "status-select",
-                            value: "{selected_status.read()}",
-                            option { value: "all", "All Statuses" }
-                            option { value: "Running", "Running" }
-                            option { value: "Pending", "Pending" }
-                            option { value: "Failed", "Failed" }
-                            option { value: "Succeeded", "Succeeded" }
+                        StatusSelector {
+                            selected_status: selected_status(),
+                            on_change: move |status| selected_status.set(status)
                         }
                         span { class: "pod-count", "{pods().len()} pods" }
                     }

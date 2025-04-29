@@ -3,7 +3,6 @@
 //! component  to be used in our app.
 
 mod hero;
-pub use hero::Hero;
 pub mod kubeconfig_name_dialog;
 
 mod pod_item;
@@ -11,3 +10,6 @@ pub use pod_item::PodItem;
 
 mod namespace_selector;
 pub use namespace_selector::NamespaceSelector;
+
+mod status_selector;
+pub use status_selector::StatusSelector;
