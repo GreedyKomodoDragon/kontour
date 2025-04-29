@@ -2,16 +2,16 @@ use dioxus::prelude::*;
 use k8s_openapi::api::core::v1::Pod;
 use kube::{api::ListParams, Api, Client};
 
-use crate::components::PodItem;
+use crate::components::{PodItem, NamespaceSelector};
 
 const PODS_CSS: Asset = asset!("/assets/styling/pods.css");
 
 #[component]
 pub fn Pods() -> Element {
-    let client = use_context::<Client>();
+    let client: Client = use_context::<Client>();
 
-    let selected_status = use_signal(|| "all");
-    let mut selected_namespace = use_signal(|| "all".to_string());
+    let selected_status = use_signal(|| "All");
+    let mut selected_namespace = use_signal(|| "All".to_string());
     let search_query = use_signal(String::new);
     let mut pods = use_signal(|| Vec::<Pod>::new());
 
@@ -21,7 +21,7 @@ pub fn Pods() -> Element {
         spawn(async move {
             let params = ListParams::default();
             
-            match if ns == "all" {
+            match if ns == "All" {
                 // List pods across all namespaces
                 Api::all(client).list(&params).await
             } else {
@@ -53,16 +53,9 @@ pub fn Pods() -> Element {
                                 value: "{search_query}"
                             }
                         }
-                        select {
-                            class: "namespace-select",
-                            value: "{selected_namespace.read()}",
-                            onchange: move |evt| {
-                                selected_namespace.set(evt.value());
-                            },
-                            option { value: "all", "All Namespaces" }
-                            option { value: "default", "default" }
-                            option { value: "monitoring", "monitoring" }
-                            option { value: "kube-system", "kube-system" }
+                        NamespaceSelector {
+                            selected_namespace: selected_namespace(),
+                            on_change: move |ns| selected_namespace.set(ns)
                         }
                         select {
                             class: "status-select",
