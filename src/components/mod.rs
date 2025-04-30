@@ -13,3 +13,6 @@ pub use namespace_selector::NamespaceSelector;
 
 mod status_selector;
 pub use status_selector::StatusSelector;
+
+mod search_input;
+pub use search_input::SearchInput;
