@@ -1,4 +1,4 @@
-use dioxus::prelude::*;
+use dioxus::{logger::tracing, prelude::*};
 use k8s_openapi::api::core::v1::Pod;
 use kube::{api::ListParams, Api, Client};
 
@@ -6,20 +6,19 @@ use crate::components::{PodItem, NamespaceSelector, StatusSelector, SearchInput}
 
 const PODS_CSS: Asset = asset!("/assets/styling/pods.css");
 
-#[component]
-pub fn Pods() -> Element {
-    let client: Client = use_context::<Client>();
+#[derive(Clone)]
+struct PodFetcher {
+    client: Client,
+    pods: Signal<Vec<Pod>>,
+}
 
-    let mut selected_status = use_signal(|| "All".to_string());
-    let mut selected_namespace = use_signal(|| "All".to_string());
-    let mut search_query = use_signal(String::new);
-    let mut pods = use_signal(|| Vec::<Pod>::new());
+impl PodFetcher {
+    fn fetch(&self, ns: String, status: String, query: String) {
+        let client = self.client.clone();
+        let mut pods = self.pods.clone();
 
-    use_effect(move || {
-        let client = client.clone();
-        let ns = selected_namespace();
-        let status = selected_status();
-        let query = search_query();
+        tracing::info!("Fetching pods with status: {} in namespace: {}", status, ns);
+        
         spawn(async move {
             let params = if status == "All" {
                 ListParams::default()
@@ -29,12 +28,12 @@ pub fn Pods() -> Element {
             };
             
             match if ns == "All" {
-                Api::all(client).list(&params).await
+                Api::all(client.clone()).list(&params).await
             } else {
-                Api::namespaced(client, &ns).list(&params).await
+                Api::namespaced(client.clone(), &ns).list(&params).await
             } {
                 Ok(pod_list) => {
-                    let filtered_pods: Vec<Pod> = if query.is_empty() {
+                    let filtered_pods = if query.is_empty() {
                         pod_list.items
                     } else {
                         pod_list.items
@@ -53,7 +52,42 @@ pub fn Pods() -> Element {
                 }
             }
         });
+    }
+}
+
+#[component]
+pub fn Pods() -> Element {
+    let client = use_context::<Client>();
+
+    let mut selected_status = use_signal(|| "All".to_string());
+    let mut selected_namespace = use_signal(|| "All".to_string());
+    let mut search_query = use_signal(String::new);
+    let pods = use_signal(|| Vec::<Pod>::new());
+
+    let fetcher = PodFetcher {
+        client: client.clone(),
+        pods: pods.clone(),
+    };
+
+    use_effect({
+        let fetcher = fetcher.clone();
+        move || {
+            let ns = selected_namespace();
+            let status = selected_status();
+            let query = search_query();
+            fetcher.fetch(ns, status, query);
+        }
     });
+
+    let refresh = {
+        let fetcher = fetcher.clone();
+        move |_| {
+            let ns = selected_namespace();
+            let status = selected_status();
+            let query = search_query();
+            fetcher.fetch(ns, status, query);
+        }
+    };
 
     rsx! {
         document::Link { rel: "stylesheet", href: PODS_CSS }
@@ -79,7 +113,11 @@ pub fn Pods() -> Element {
                 }
                 div { class: "header-actions",
                     button { class: "btn btn-primary", "Create Pod" }
-                    button { class: "btn btn-secondary", "Refresh" }
+                    button { 
+                        class: "btn btn-secondary",
+                        onclick: refresh,
+                        "Refresh" 
+                    }
                 }
             }
 
