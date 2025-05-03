@@ -7,6 +7,7 @@ name = "Kontour"
 version = "0.1.0"
 dependencies = [
  "dioxus",
+ "dioxus-desktop",
  "dioxus-hooks",
  "k8s-openapi",
  "kube",

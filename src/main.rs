@@ -1,6 +1,10 @@
 use dioxus::prelude::*;
+use dioxus_desktop::{Config, WindowBuilder};
 use kube::Client;
-use views::{Blog, Home, Navbar, Nodes, Namespaces, Pods, CreatePod, Deployments,StatefulSets, DaemonSets, Services, Ingresses, Pvcs, ConfigMaps, Secrets};
+use views::{
+    Blog, ConfigMaps, CreatePod, DaemonSets, Deployments, Home, Ingresses, Namespaces, Navbar,
+    Nodes, Pods, Pvcs, Secrets, Services, StatefulSets,
+};
 
 mod components;
 mod views;
@@ -44,14 +48,18 @@ const MAIN_CSS: Asset = asset!("/assets/styling/main.css");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 fn main() {
-    dioxus::launch(App);
+    LaunchBuilder::desktop()
+        .with_cfg(
+            Config::new().with_window(
+                WindowBuilder::new().with_title("Kontour")
+            ),
+        )
+        .launch(App);
 }
 
 #[component]
 fn App() -> Element {
-    let client = use_resource(|| async move {
-        Client::try_default().await
-    });
+    let client = use_resource(|| async move { Client::try_default().await });
 
     let client_ref = client.read();
 
