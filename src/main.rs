@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use kube::Client;
-use views::{Blog, Home, Navbar, Nodes, Namespaces, Pods, Deployments, StatefulSets, DaemonSets, Services, Ingresses, Pvcs, ConfigMaps, Secrets};
+use views::{Blog, Home, Navbar, Nodes, Namespaces, Pods, CreatePod, Deployments,StatefulSets, DaemonSets, Services, Ingresses, Pvcs, ConfigMaps, Secrets};
 
 mod components;
 mod views;
@@ -17,6 +17,8 @@ enum Route {
         Namespaces {},
         #[route("/pods")]
         Pods {},
+        #[route("/pods/create")]
+        CreatePod {},
         #[route("/deployments")]
         Deployments {},
         #[route("/statefulsets")]

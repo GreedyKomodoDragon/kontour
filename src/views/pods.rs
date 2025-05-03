@@ -58,6 +58,7 @@ impl PodFetcher {
 #[component]
 pub fn Pods() -> Element {
     let client = use_context::<Client>();
+    let navigate = use_navigator();
 
     let mut selected_status = use_signal(|| "All".to_string());
     let mut selected_namespace = use_signal(|| "All".to_string());
@@ -112,7 +113,13 @@ pub fn Pods() -> Element {
                     }
                 }
                 div { class: "header-actions",
-                    button { class: "btn btn-primary", "Create Pod" }
+                    button { 
+                        class: "btn btn-primary",
+                        onclick: move |_| {
+                            navigate.push("/pods/create");
+                        },
+                        "Create Pod" 
+                    }
                     button { 
                         class: "btn btn-secondary",
                         onclick: refresh,
