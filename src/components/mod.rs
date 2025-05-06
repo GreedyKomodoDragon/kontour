@@ -8,6 +8,9 @@ pub mod kubeconfig_name_dialog;
 mod pod_item;
 pub use pod_item::PodItem;
 
+mod deployment_item;
+pub use deployment_item::DeploymentItem;
+
 mod namespace_selector;
 pub use namespace_selector::NamespaceSelector;
 
