@@ -11,6 +11,9 @@ pub use pod_item::PodItem;
 mod deployment_item;
 pub use deployment_item::DeploymentItem;
 
+mod statefulset_item;
+pub use statefulset_item::StatefulSetItem;
+
 mod namespace_selector;
 pub use namespace_selector::NamespaceSelector;
 
