@@ -20,20 +20,16 @@ impl DeploymentFetcher {
         tracing::info!("Starting deployment fetch...");
         
         spawn(async move {
-            let params = if status == "All" {
-                ListParams::default()
+            // First get all deployments since we need to examine conditions
+            let api = if ns == "All" {
+                Api::<Deployment>::all(client.clone())
             } else {
-                ListParams::default()
-                    .fields(&format!("status.phase={}", status))
+                Api::<Deployment>::namespaced(client.clone(), &ns)
             };
             
-            match if ns == "All" {
-                Api::<Deployment>::all(client.clone()).list(&params).await
-            } else {
-                Api::<Deployment>::namespaced(client.clone(), &ns).list(&params).await
-            } {
+            match api.list(&ListParams::default()).await {
                 Ok(deployment_list) => {
-                    let filtered_deployments = if query.is_empty() {
+                    let mut filtered_deployments = if query.is_empty() {
                         deployment_list.items
                     } else {
                         deployment_list.items
@@ -43,8 +39,37 @@ impl DeploymentFetcher {
                                     .map(|name| name.to_lowercase().contains(&query.to_lowercase()))
                                     .unwrap_or(false)
                             })
-                            .collect()
+                            .collect::<Vec<_>>()
                     };
+
+                    // Filter by status if not "All"
+                    if status != "All" {
+                        filtered_deployments = filtered_deployments.into_iter()
+                            .filter(|dep| {
+                                let desired = dep.spec.as_ref().map_or(0, |s| s.replicas.unwrap_or(0));
+                                let updated = dep.status.as_ref().map_or(0, |s| s.updated_replicas.unwrap_or(0));
+                                let available = dep.status.as_ref().map_or(0, |s| s.available_replicas.unwrap_or(0));
+                                
+                                let conditions = dep.status.as_ref()
+                                    .and_then(|s| s.conditions.as_ref())
+                                    .map(|c| c.iter().map(|cond| (cond.type_.clone(), cond.status.clone(), cond.reason.clone())).collect::<Vec<_>>())
+                                    .unwrap_or_default();
+
+                                let is_progressing = conditions.iter().any(|(t, s, _)| t == "Progressing" && s == "True");
+                                let is_available = conditions.iter().any(|(t, s, _)| t == "Available" && s == "True");
+                                let has_replica_failure = conditions.iter().any(|(t, _, r)| t == "Progressing" && r.as_ref().map_or(false, |r| r == "ReplicaFailure"));
+                                
+                                match status.as_str() {
+                                    "Available" => is_available && is_progressing && updated == desired && available == desired,
+                                    "Progressing" => is_progressing && (!is_available || updated != desired),
+                                    "Degraded" => has_replica_failure || (!is_progressing && !is_available),
+                                    "Scaled Down" => desired == 0,
+                                    _ => false
+                                }
+                            })
+                            .collect();
+                    }
+                    
                     deployments.set(filtered_deployments);
                 }
                 Err(e) => {
@@ -107,7 +132,8 @@ pub fn Deployments() -> Element {
                         }
                         StatusSelector {
                             selected_status: selected_status(),
-                            on_change: move |status| selected_status.set(status)
+                            on_change: move |status| selected_status.set(status),
+                            custom_statuses: Some(vec!["All", "Available", "Progressing", "Degraded", "Scaled Down"])
                         }
                         span { class: "deployment-count", "{deployments().len()} deployments" }
                     }

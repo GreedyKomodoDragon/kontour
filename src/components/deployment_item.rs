@@ -11,6 +11,7 @@ struct DeploymentData {
     desired_replicas: i32,
     available_replicas: i32,
     updated_replicas: i32,
+    status: String,
     labels: Vec<(String, String)>,
     selector: Vec<(String, String)>,
     conditions: Vec<DeploymentCondition>,
@@ -47,6 +48,32 @@ pub fn DeploymentItem(props: DeploymentItemProps) -> Element {
         desired_replicas: props.deployment.spec.as_ref().map_or(0, |s| s.replicas.unwrap_or(0)),
         available_replicas: props.deployment.status.as_ref().map_or(0, |s| s.available_replicas.unwrap_or(0)),
         updated_replicas: props.deployment.status.as_ref().map_or(0, |s| s.updated_replicas.unwrap_or(0)),
+        status: {
+            let conditions = props.deployment.status.as_ref()
+                .and_then(|s| s.conditions.as_ref())
+                .map(|c| c.iter().map(|cond| (cond.type_.clone(), cond.status.clone(), cond.reason.clone())).collect::<Vec<_>>())
+                .unwrap_or_default();
+
+            let desired = props.deployment.spec.as_ref().map_or(0, |s| s.replicas.unwrap_or(0));
+            let updated = props.deployment.status.as_ref().map_or(0, |s| s.updated_replicas.unwrap_or(0));
+            let available = props.deployment.status.as_ref().map_or(0, |s| s.available_replicas.unwrap_or(0));
+
+            if desired == 0 {
+                "Scaled Down".to_string()
+            } else {
+                let is_progressing = conditions.iter().any(|(t, s, _)| t == "Progressing" && s == "True");
+                let is_available = conditions.iter().any(|(t, s, _)| t == "Available" && s == "True");
+                let has_replica_failure = conditions.iter().any(|(t, _, r)| t == "Progressing" && r.as_ref().map_or(false, |r| r == "ReplicaFailure"));
+
+                if has_replica_failure || (!is_progressing && !is_available) {
+                    "Degraded".to_string()
+                } else if is_available && is_progressing && updated == desired && available == desired {
+                    "Available".to_string()
+                } else {
+                    "Progressing".to_string()
+                }
+            }
+        },
         labels: props.deployment.metadata.labels.as_ref()
             .map(|labels| labels.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
             .unwrap_or_default(),
@@ -70,13 +97,12 @@ pub fn DeploymentItem(props: DeploymentItemProps) -> Element {
             .unwrap_or_default(),
     };
 
-    let status_class = if deployment_data.ready_replicas == deployment_data.desired_replicas 
-        && deployment_data.available_replicas >= deployment_data.desired_replicas {
-        "status-running"
-    } else if deployment_data.ready_replicas < deployment_data.desired_replicas {
-        "status-pending"
-    } else {
-        "status-warning"
+    let status_class = match deployment_data.status.as_str() {
+        "Available" => "status-running",
+        "Progressing" => "status-pending",
+        "Degraded" => "status-failed",
+        "Scaled Down" => "status-warning",
+        _ => "status-unknown"
     };
 
     rsx! {
@@ -88,7 +114,7 @@ pub fn DeploymentItem(props: DeploymentItemProps) -> Element {
                 div { class: "deployment-title",
                     h3 { "{deployment_data.name}" }
                     span { class: "status-badge {status_class}",
-                        "{deployment_data.ready_replicas}/{deployment_data.desired_replicas}"
+                        "{deployment_data.status} ({deployment_data.ready_replicas}/{deployment_data.desired_replicas})"
                     }
                 }
                 div { class: "deployment-controls",

@@ -4,11 +4,13 @@ use dioxus::prelude::*;
 pub struct StatusSelectorProps {
     selected_status: String,
     on_change: EventHandler<String>,
+    #[props(optional)]
+    custom_statuses: Option<Vec<&'static str>>,
 }
 
 #[component]
 pub fn StatusSelector(props: StatusSelectorProps) -> Element {
-    let statuses = vec!["All", "Running", "Pending", "Failed", "Succeeded"];
+    let statuses = props.custom_statuses.unwrap_or_else(|| vec!["All", "Running", "Pending", "Failed", "Succeeded"]);
 
     rsx! {
         select {
