@@ -14,6 +14,9 @@ pub use deployment_item::DeploymentItem;
 mod statefulset_item;
 pub use statefulset_item::StatefulSetItem;
 
+mod daemonset_item;
+pub use daemonset_item::DaemonSetItem;
+
 mod namespace_selector;
 pub use namespace_selector::NamespaceSelector;
 
