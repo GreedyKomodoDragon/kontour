@@ -25,3 +25,6 @@ pub use status_selector::StatusSelector;
 
 mod search_input;
 pub use search_input::SearchInput;
+
+mod service_item;
+pub use service_item::ServiceItem;
