@@ -31,3 +31,6 @@ pub use service_item::ServiceItem;
 
 mod ingress_item;
 pub use ingress_item::IngressItem;
+
+mod pvc_item;
+pub use pvc_item::PvcItem;
