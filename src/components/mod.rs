@@ -28,3 +28,6 @@ pub use search_input::SearchInput;
 
 mod service_item;
 pub use service_item::ServiceItem;
+
+mod ingress_item;
+pub use ingress_item::IngressItem;

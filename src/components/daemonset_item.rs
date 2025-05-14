@@ -45,52 +45,116 @@ pub fn DaemonSetItem(props: DaemonSetItemProps) -> Element {
 
     let daemonset_data = DaemonSetData {
         name: props.daemonset.metadata.name.clone().unwrap_or_default(),
-        namespace: props.daemonset.metadata.namespace.clone().unwrap_or_default(),
+        namespace: props
+            .daemonset
+            .metadata
+            .namespace
+            .clone()
+            .unwrap_or_default(),
         age: "1h".to_string(), // TODO: Calculate age
-        desired_scheduled: props.daemonset.status.as_ref().map_or(0, |s| s.desired_number_scheduled),
-        current_scheduled: props.daemonset.status.as_ref().map_or(0, |s| s.current_number_scheduled),
-        ready_scheduled: props.daemonset.status.as_ref().map_or(0, |s| s.number_ready),
-        updated_scheduled: props.daemonset.status.as_ref().map_or(0, |s| s.updated_number_scheduled.unwrap_or(s.current_number_scheduled)),
-        available_scheduled: props.daemonset.status.as_ref().map_or(0, |s| s.number_available.unwrap_or(0)),
-        labels: props.daemonset.metadata.labels.as_ref()
+        desired_scheduled: props
+            .daemonset
+            .status
+            .as_ref()
+            .map_or(0, |s| s.desired_number_scheduled),
+        current_scheduled: props
+            .daemonset
+            .status
+            .as_ref()
+            .map_or(0, |s| s.current_number_scheduled),
+        ready_scheduled: props
+            .daemonset
+            .status
+            .as_ref()
+            .map_or(0, |s| s.number_ready),
+        updated_scheduled: props.daemonset.status.as_ref().map_or(0, |s| {
+            s.updated_number_scheduled
+                .unwrap_or(s.current_number_scheduled)
+        }),
+        available_scheduled: props
+            .daemonset
+            .status
+            .as_ref()
+            .map_or(0, |s| s.number_available.unwrap_or(0)),
+        labels: props
+            .daemonset
+            .metadata
+            .labels
+            .as_ref()
             .map(|labels| labels.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
             .unwrap_or_default(),
-        selector: props.daemonset.spec.as_ref()
+        selector: props
+            .daemonset
+            .spec
+            .as_ref()
             .and_then(|s| s.selector.match_labels.as_ref())
-            .map(|selector| selector.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+            .map(|selector| {
+                selector
+                    .iter()
+                    .map(|(k, v)| (k.clone(), v.clone()))
+                    .collect()
+            })
             .unwrap_or_default(),
-        node_selector: props.daemonset.spec.as_ref()
+        node_selector: props
+            .daemonset
+            .spec
+            .as_ref()
             .and_then(|s| s.template.spec.as_ref())
             .and_then(|s| s.node_selector.as_ref())
-            .map(|selector| selector.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+            .map(|selector| {
+                selector
+                    .iter()
+                    .map(|(k, v)| (k.clone(), v.clone()))
+                    .collect()
+            })
             .unwrap_or_default(),
-        node_selector_requirements: props.daemonset.spec.as_ref()
+        node_selector_requirements: props
+            .daemonset
+            .spec
+            .as_ref()
             .and_then(|s| s.template.spec.as_ref())
             .and_then(|s| s.affinity.as_ref())
             .and_then(|a| a.node_affinity.as_ref())
-            .and_then(|na| na.required_during_scheduling_ignored_during_execution.as_ref())
+            .and_then(|na| {
+                na.required_during_scheduling_ignored_during_execution
+                    .as_ref()
+            })
             .map(|selector| {
-                selector.node_selector_terms.iter().flat_map(|term| {
-                    term.match_expressions.iter().flatten().map(|expr| NodeSelectorRequirement {
-                        key: expr.key.clone(),
-                        operator: expr.operator.clone(),
-                        values: expr.values.clone().unwrap_or_default(),
+                selector
+                    .node_selector_terms
+                    .iter()
+                    .flat_map(|term| {
+                        term.match_expressions.iter().flatten().map(|expr| {
+                            NodeSelectorRequirement {
+                                key: expr.key.clone(),
+                                operator: expr.operator.clone(),
+                                values: expr.values.clone().unwrap_or_default(),
+                            }
+                        })
                     })
-                }).collect()
+                    .collect()
             })
             .unwrap_or_default(),
-        conditions: props.daemonset.status.as_ref()
+        conditions: props
+            .daemonset
+            .status
+            .as_ref()
             .and_then(|s| s.conditions.as_ref())
             .map(|conditions| {
-                conditions.iter().map(|c| DaemonSetCondition {
-                    condition_type: c.type_.clone(),
-                    status: c.status.clone(),
-                    last_transition_time: c.last_transition_time.as_ref()
-                        .map(|t| t.0.to_string())
-                        .unwrap_or_default(),
-                    reason: c.reason.clone().unwrap_or_default(),
-                    message: c.message.clone().unwrap_or_default(),
-                }).collect()
+                conditions
+                    .iter()
+                    .map(|c| DaemonSetCondition {
+                        condition_type: c.type_.clone(),
+                        status: c.status.clone(),
+                        last_transition_time: c
+                            .last_transition_time
+                            .as_ref()
+                            .map(|t| t.0.to_string())
+                            .unwrap_or_default(),
+                        reason: c.reason.clone().unwrap_or_default(),
+                        message: c.message.clone().unwrap_or_default(),
+                    })
+                    .collect()
             })
             .unwrap_or_default(),
     };
@@ -101,7 +165,7 @@ pub fn DaemonSetItem(props: DaemonSetItemProps) -> Element {
         "Progressing" => "status-pending",
         "Not Ready" => "status-failed",
         "No Nodes" => "status-warning",
-        _ => "status-unknown"
+        _ => "status-unknown",
     };
 
     rsx! {
@@ -155,7 +219,7 @@ pub fn DaemonSetItem(props: DaemonSetItemProps) -> Element {
                                 span { class: "info-value", i { "No labels" } }
                             })}
                             {daemonset_data.labels.iter().map(|(key, value)| rsx! {
-                                div { 
+                                div {
                                     key: "{key}",
                                     class: "label",
                                     span { class: "label-key", "{key}" }
@@ -173,7 +237,7 @@ pub fn DaemonSetItem(props: DaemonSetItemProps) -> Element {
                                 span { class: "info-value", i { "No selector" } }
                             })}
                             {daemonset_data.selector.iter().map(|(key, value)| rsx! {
-                                div { 
+                                div {
                                     key: "sel-{key}",
                                     class: "label",
                                     span { class: "label-key", "{key}" }
@@ -192,7 +256,7 @@ pub fn DaemonSetItem(props: DaemonSetItemProps) -> Element {
                             })}
                             // Node Selector Labels
                             {daemonset_data.node_selector.iter().map(|(key, value)| rsx! {
-                                div { 
+                                div {
                                     key: "node-sel-{key}",
                                     class: "label",
                                     span { class: "label-key", "{key}" }
@@ -201,7 +265,7 @@ pub fn DaemonSetItem(props: DaemonSetItemProps) -> Element {
                             })}
                             // Node Selector Requirements
                             {daemonset_data.node_selector_requirements.iter().map(|req| rsx! {
-                                div { 
+                                div {
                                     key: "node-req-{req.key}",
                                     class: "label node-requirement",
                                     span { class: "label-key", "{req.key} {req.operator}" }
@@ -224,7 +288,7 @@ pub fn DaemonSetItem(props: DaemonSetItemProps) -> Element {
                                     class: "condition",
                                     div { class: "condition-info",
                                         span { class: "condition-type", "{cond.condition_type}" }
-                                        span { 
+                                        span {
                                             class: "condition-status status-{cond.status.to_lowercase()}",
                                             "{cond.status}"
                                         }
@@ -245,10 +309,19 @@ pub fn DaemonSetItem(props: DaemonSetItemProps) -> Element {
 }
 
 fn determine_status(daemonset: &DaemonSet) -> String {
-    let desired = daemonset.status.as_ref().map_or(0, |s| s.desired_number_scheduled);
+    let desired = daemonset
+        .status
+        .as_ref()
+        .map_or(0, |s| s.desired_number_scheduled);
     let ready = daemonset.status.as_ref().map_or(0, |s| s.number_ready);
-    let current = daemonset.status.as_ref().map_or(0, |s| s.current_number_scheduled);
-    let updated = daemonset.status.as_ref().map_or(0, |s| s.updated_number_scheduled.unwrap_or(s.current_number_scheduled));
+    let current = daemonset
+        .status
+        .as_ref()
+        .map_or(0, |s| s.current_number_scheduled);
+    let updated = daemonset.status.as_ref().map_or(0, |s| {
+        s.updated_number_scheduled
+            .unwrap_or(s.current_number_scheduled)
+    });
 
     if desired == 0 {
         return "No Nodes".to_string();

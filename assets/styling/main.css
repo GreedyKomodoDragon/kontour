@@ -312,8 +312,9 @@ html, body {
 }
 
 .info-section { 
-    margin: 0;
+    margin-top: 12px;
 }
+
 .info-section h4 {
     font-size: 14px;
     font-weight: 500;
