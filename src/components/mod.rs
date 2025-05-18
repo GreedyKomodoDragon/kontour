@@ -40,3 +40,6 @@ pub use configmap_item::ConfigMapItem;
 
 mod secret_item;
 pub use secret_item::SecretItem;
+
+mod job_item;
+pub use job_item::JobItem;

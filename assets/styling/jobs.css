@@ -1,0 +1,456 @@
+.jobs-container {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.jobs-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.jobs-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.job-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    transition: background-color 0.2s ease;
+}
+
+.job-card:hover {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.job-header-card {
+    padding: 12px 16px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 24px;
+}
+
+.job-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    order: -1;
+    margin-right: auto;
+}
+
+.job-title h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.job-info-short {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    justify-content: flex-end;
+}
+
+.info-item-short {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.job-controls {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.job-details {
+    padding: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    animation: slideDown 0.2s ease-out;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+
+.status-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    flex-shrink: 0;
+    line-height: 1.5;
+}
+
+.status-succeeded {
+    background: rgba(74, 222, 128, 0.2);
+    color: #4ade80;
+}
+
+.status-failed {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.status-active {
+    background: rgba(74, 222, 128, 0.2);
+    color: #4ade80;
+}
+
+.status-pending {
+    background: rgba(250, 204, 21, 0.2);
+    color: #facc15;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Section Blocks */
+.section-block {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 8px;
+}
+
+/* Containers Section */
+.containers-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.containers-section h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 8px 0;
+}
+
+.containers-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.container-card {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.section-header h5 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.image-tag {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: monospace;
+    padding: 2px 6px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.container-title h5 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.container-image {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Command Section */
+.command-section {
+    margin: 12px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.command-item {
+    display: flex;
+    gap: 8px;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.command-label {
+    color: rgba(255, 255, 255, 0.5);
+    min-width: 80px;
+}
+
+.command-value {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Environment Variables */
+.env-section {
+    margin: 12px 0;
+}
+
+.env-section h6 {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 8px 0;
+}
+
+.env-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.env-item {
+    display: flex;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.env-name {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+}
+
+.env-value {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Resources */
+.resources-section {
+    margin: 12px 0;
+}
+
+.resources-section h6 {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 8px 0;
+}
+
+.resource-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.resource-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.resource-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.resource-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+}
+
+.resource-key {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.resource-value {
+    color: rgba(255, 255, 255, 0.9);
+    font-family: monospace;
+}
+
+/* Tolerations */
+.tolerations-section {
+    margin: 12px 0;
+}
+
+.tolerations-section h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 8px 0;
+}
+
+.tolerations-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.toleration-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+    font-size: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+    font-family: monospace;
+}
+
+.toleration-item div {
+    display: flex;
+    gap: 4px;
+    color: inherit;
+    padding-left: 8px;
+}
+
+.toleration-key {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.toleration-value {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.toleration-value.quoted {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Volume Mounts */
+.volume-mounts-section {
+    margin: 12px 0;
+}
+
+.volume-mounts-section h6 {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 8px 0;
+}
+
+.volume-mounts-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.volume-mount-item {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    align-items: center;
+    padding: 6px 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+}
+
+.volume-name {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+}
+
+.mount-path {
+    color: rgba(255, 255, 255, 0.7);
+    font-family: monospace;
+}
+
+.read-only {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 11px;
+}
+
+/* Volumes */
+.volumes-section {
+    margin: 12px 0;
+}
+
+.volumes-section h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 8px 0;
+}
+
+.volumes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+}
+
+.volume-item {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+    padding: 8px 12px;
+}
+
+.volume-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.volumes-section .volume-name {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    font-size: 12px;
+}
+
+.volumes-section .volume-type {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 11px;
+}
+
+.volumes-section .volume-source {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    font-family: monospace;
+}

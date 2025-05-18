@@ -162,6 +162,11 @@ pub fn Navbar() -> Element {
                             class: "nav-daemonsets",
                             "DaemonSets"
                         }
+                        Link {
+                            to: Route::Jobs {},
+                            class: "nav-jobs",
+                            "Jobs"
+                        }
                     }
                     div { class: "nav-group",
                         span { class: "nav-group-title", "NETWORK" }

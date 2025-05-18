@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 use dioxus_desktop::{Config, WindowBuilder};
 use kube::Client;
 use views::{
-    Blog, ConfigMaps, CreatePod, DaemonSets, Deployments, Home, Ingresses, Namespaces, Navbar,
+    Blog, ConfigMaps, CreatePod, DaemonSets, Deployments, Home, Ingresses, Jobs, Namespaces, Navbar,
     Nodes, Pods, Pvcs, Secrets, Services, StatefulSets,
 };
 
@@ -29,6 +29,8 @@ enum Route {
         StatefulSets {},
         #[route("/daemonsets")]
         DaemonSets {},
+        #[route("/jobs")]
+        Jobs {},
         #[route("/services")]
         Services {},
         #[route("/ingresses")]
