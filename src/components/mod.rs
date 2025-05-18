@@ -34,3 +34,6 @@ pub use ingress_item::IngressItem;
 
 mod pvc_item;
 pub use pvc_item::PvcItem;
+
+mod configmap_item;
+pub use configmap_item::ConfigMapItem;
