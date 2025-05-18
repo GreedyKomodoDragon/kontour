@@ -37,3 +37,6 @@ pub use pvc_item::PvcItem;
 
 mod configmap_item;
 pub use configmap_item::ConfigMapItem;
+
+mod secret_item;
+pub use secret_item::SecretItem;

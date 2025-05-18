@@ -43,7 +43,7 @@ pub fn ConfigMapItem(props: ConfigMapItemProps) -> Element {
 
     rsx! {
         div {
-            key: "{configmap_data.name}",
+            key: "{configmap_data.namespace}-{configmap_data.name}",
             class: "configmap-card",
             div {
                 class: "configmap-header-card",
@@ -79,7 +79,7 @@ pub fn ConfigMapItem(props: ConfigMapItemProps) -> Element {
                             div { class: "labels-grid",
                                 {configmap_data.labels.iter().map(|(key, value)| rsx! {
                                     div {
-                                        key: "lbl-{key}",
+                                        key: "lbl-{configmap_data.namespace}-{configmap_data.name}-{key}",
                                         class: "label",
                                         span { class: "label-key", "{key}" }
                                         span { class: "label-value", "{value}" }
@@ -96,7 +96,7 @@ pub fn ConfigMapItem(props: ConfigMapItemProps) -> Element {
                             div { class: "labels-grid",
                                 {configmap_data.annotations.iter().map(|(key, value)| rsx! {
                                     div {
-                                        key: "anno-{key}",
+                                        key: "anno-{configmap_data.namespace}-{configmap_data.name}-{key}",
                                         class: "label annotation",
                                         span { class: "label-key", "{key}" }
                                         span { class: "label-value", "{value}" }
@@ -113,7 +113,7 @@ pub fn ConfigMapItem(props: ConfigMapItemProps) -> Element {
                             div { class: "data-grid",
                                 {configmap_data.data.iter().map(|(key, value)| rsx! {
                                     div {
-                                        key: "data-{key}",
+                                        key: "data-{configmap_data.namespace}-{configmap_data.name}-{key}",
                                         class: "data-item",
                                         div { class: "data-key", "{key}" }
                                         pre { class: "data-value", "{value}" }
@@ -130,7 +130,7 @@ pub fn ConfigMapItem(props: ConfigMapItemProps) -> Element {
                             div { class: "data-grid binary-keys",
                                 {configmap_data.binary_data_keys.iter().map(|key| rsx! {
                                     div {
-                                        key: "bindata-{key}",
+                                        key: "bindata-{configmap_data.namespace}-{configmap_data.name}-{key}",
                                         class: "data-item binary-item",
                                         div { class: "data-key", "{key}" }
                                         div { class: "data-value binary-placeholder", i { "(binary data)" } }
