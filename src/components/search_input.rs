@@ -13,7 +13,7 @@ pub fn SearchInput(props: SearchInputProps) -> Element {
             input {
                 class: "search-input",
                 r#type: "text",
-                placeholder: "Search pods...",
+                placeholder: "Search...",
                 value: "{props.query}",
                 oninput: move |evt| props.on_change.call(evt.value().clone())
             }

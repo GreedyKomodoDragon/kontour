@@ -10,7 +10,6 @@ struct SecretData {
     labels: Vec<(String, String)>,
     annotations: Vec<(String, String)>,
     data_keys: Vec<String>,
-    actual_data: Option<Vec<(String, String)>>,
 }
 
 #[derive(Props, PartialEq, Clone)]
@@ -21,41 +20,48 @@ pub struct SecretItemProps {
 #[component]
 pub fn SecretItem(props: SecretItemProps) -> Element {
     let mut is_expanded = use_signal(|| false);
-    let mut is_revealed = use_signal(|| false);
+    let mut revealed_keys = use_signal(|| std::collections::HashSet::new());
 
     let secret_data = SecretData {
         name: props.secret.metadata.name.clone().unwrap_or_default(),
         namespace: props.secret.metadata.namespace.clone().unwrap_or_default(),
-        secret_type: props.secret.type_.clone().unwrap_or_else(|| "Opaque".to_string()),
+        secret_type: props
+            .secret
+            .type_
+            .clone()
+            .unwrap_or_else(|| "Opaque".to_string()),
         age: "1h".to_string(), // TODO: Calculate age
-        labels: props.secret.metadata.labels.as_ref()
+        labels: props
+            .secret
+            .metadata
+            .labels
+            .as_ref()
             .map(|labels| labels.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
             .unwrap_or_default(),
-        annotations: props.secret.metadata.annotations.as_ref()
-            .map(|annotations| annotations.iter()
-                .filter(|(k, _)| *k != "kubectl.kubernetes.io/last-applied-configuration")
-                .map(|(k, v)| (k.clone(), v.clone()))
-                .collect())
-            .unwrap_or_default(),
-        data_keys: props.secret.data.as_ref()
-            .map(|data| data.keys().cloned().collect())
-            .unwrap_or_default(),
-        actual_data: if is_revealed() {
-            props.secret.data.as_ref().map(|data| {
-                data.iter()
-                    .filter_map(|(k, v)| {
-                        String::from_utf8(v.0.clone()).ok()
-                            .map(|decoded| (k.clone(), decoded))
-                    })
+        annotations: props
+            .secret
+            .metadata
+            .annotations
+            .as_ref()
+            .map(|annotations| {
+                annotations
+                    .iter()
+                    .filter(|(k, _)| *k != "kubectl.kubernetes.io/last-applied-configuration")
+                    .map(|(k, v)| (k.clone(), v.clone()))
                     .collect()
             })
-        } else {
-            None
-        },
+            .unwrap_or_default(),
+        data_keys: props
+            .secret
+            .data
+            .as_ref()
+            .map(|data| data.keys().cloned().collect())
+            .unwrap_or_default(),
     };
 
     let data_keys_count = secret_data.data_keys.len();
     let key_base = format!("{}-{}", secret_data.namespace, secret_data.name);
+    let data_keys = secret_data.data_keys.clone();
 
     rsx! {
         div {
@@ -81,15 +87,6 @@ pub fn SecretItem(props: SecretItemProps) -> Element {
                         },
                         title: if is_expanded() { "Collapse" } else { "Expand" },
                         if is_expanded() { "🔼" } else { "🔽" }
-                    }
-                    button {
-                        class: "btn-icon",
-                        onclick: move |evt| {
-                            evt.stop_propagation();
-                            is_revealed.set(!is_revealed());
-                        },
-                        title: if is_revealed() { "Hide Data" } else { "Show Data" },
-                        if is_revealed() { "👁️‍🗨️" } else { "👁️" }
                     }
                     button { class: "btn-icon", onclick: move |evt| evt.stop_propagation(), title: "Edit", "✏️" }
                     button { class: "btn-icon", onclick: move |evt| evt.stop_propagation(), title: "Delete", "🗑️" }
@@ -152,35 +149,56 @@ pub fn SecretItem(props: SecretItemProps) -> Element {
                     })}
 
                     // Data Section
-                    {(!secret_data.data_keys.is_empty()).then(|| rsx! {
+                    {
+                        (!data_keys.is_empty()).then(|| rsx! {
                         div { class: "data-section",
                             h4 { "Data" }
                             div { class: "data-grid",
-                                {
-                                    if is_revealed() && secret_data.actual_data.is_some() {
-                                        rsx! {
-                                            {secret_data.actual_data.as_ref().unwrap().iter().map(|(key, value)| rsx! {
-                                                div {
-                                                    key: "data-{key_base}-{key}",
-                                                    class: "data-item",
-                                                    div { class: "data-key", "{key}" }
-                                                    pre { class: "data-value", "{value}" }
-                                                }
-                                            })}
-                                        }
+                                {data_keys.iter().map(|key| {
+                                    let key = key.clone();
+                                    let is_revealed = revealed_keys.read().contains(&key);
+                                    let decoded_value = if is_revealed {
+                                        props.secret.data.as_ref()
+                                            .and_then(|data| data.get(&key))
+                                            .map(|value| String::from_utf8(value.0.clone())
+                                                .unwrap_or_else(|_| "(invalid UTF-8)".to_string()))
+                                            .unwrap_or_else(|| "(error)".to_string())
                                     } else {
-                                        rsx! {
-                                            {secret_data.data_keys.iter().map(|key| rsx! {
-                                                div {
-                                                    key: "data-{key_base}-{key}",
-                                                    class: "data-item",
-                                                    div { class: "data-key", "{key}" }
-                                                    div { class: "data-value secret-placeholder", i { "(value hidden)" } }
+                                        String::new()
+                                    };
+
+                                    rsx! {
+                                        div {
+                                            key: "data-{key_base}-{key}",
+                                            class: "data-item",
+                                            div { class: "data-key",
+                                                span { "{key}" }
+                                                button {
+                                                    class: "btn-icon btn-small",
+                                                    onclick: move |evt| {
+                                                        evt.stop_propagation();
+                                                        let mut keys = revealed_keys.write();
+                                                        if keys.contains(&key) {
+                                                            keys.remove(&key);
+                                                        } else {
+                                                            keys.insert(key.clone());
+                                                        }
+                                                    },
+                                                    title: if is_revealed { "Hide Value" } else { "Show Value" },
+                                                    if is_revealed { "👁️‍🗨️" } else { "👁️" }
                                                 }
-                                            })}
+                                            }
+                                            div {
+                                                class: "data-value",
+                                                if is_revealed {
+                                                    pre { "{decoded_value}" }
+                                                } else {
+                                                   div { class: "secret-placeholder", i { "(value hidden)" } }
+                                                }
+                                            }
                                         }
                                     }
-                                }
+                                })}
                             }
                         }
                     })}
