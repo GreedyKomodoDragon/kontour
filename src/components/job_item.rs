@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 use k8s_openapi::api::batch::v1::Job;
+use crate::components::{PodContainerInfo, PodEnvVar, PodContainers, PodResources, PodVolumeMount};
 
 #[derive(Props, PartialEq, Clone)]
 pub struct JobItemProps {
@@ -129,7 +130,7 @@ pub fn JobItem(props: JobItemProps) -> Element {
                 pod_spec
                     .containers
                     .iter()
-                    .map(|c| ContainerInfo {
+                    .map(|c| PodContainerInfo {
                         name: c.name.clone(),
                         image: c.image.clone().unwrap_or_default(),
                         command: c.command.clone().unwrap_or_default(),
@@ -137,7 +138,7 @@ pub fn JobItem(props: JobItemProps) -> Element {
                         env: c.env.as_ref().map_or_else(Vec::new, |env_vars| {
                             env_vars
                                 .iter()
-                                .map(|ev| EnvVar {
+                                .map(|ev| PodEnvVar {
                                     name: ev.name.clone(),
                                     value: ev.value.clone(),
                                     value_from: ev.value_from.as_ref().map(|vf| {
@@ -152,7 +153,7 @@ pub fn JobItem(props: JobItemProps) -> Element {
                                 })
                                 .collect()
                         }),
-                        resources: Resources {
+                        resources: PodResources {
                             requests: c
                                 .resources
                                 .as_ref()
@@ -179,7 +180,7 @@ pub fn JobItem(props: JobItemProps) -> Element {
                         volume_mounts: c.volume_mounts.as_ref().map_or_else(Vec::new, |mounts| {
                             mounts
                                 .iter()
-                                .map(|vm| VolumeMount {
+                                .map(|vm| PodVolumeMount {
                                     name: vm.name.clone(),
                                     mount_path: vm.mount_path.clone(),
                                     read_only: vm.read_only.unwrap_or(false),
@@ -415,104 +416,9 @@ pub fn JobItem(props: JobItemProps) -> Element {
 
                     // Containers Section
                     {(!job_data.containers.is_empty()).then(|| rsx! {
-                        div { class: "labels-section",
-                            h4 { "Containers" }
-                            div { class: "containers-grid",
-                                {job_data.containers.iter().map(|container| rsx! {
-                                    div { 
-                                        key: "container-{key_base}-{container.name}",
-                                        class: "container-card",
-                                        div { class: "section-header",
-                                            h5 { "{container.name}" }
-                                            span { class: "image-tag", "{container.image}" }
-                                        }
-
-                                        // Command and Args
-                                        {(!container.command.is_empty() || !container.args.is_empty()).then(|| rsx! {
-                                            div { class: "command-section",
-                                                {(!container.command.is_empty()).then(|| rsx! {
-                                                    div { class: "command-item",
-                                                        span { class: "command-label", "Command:" }
-                                                        span { class: "command-value", "{container.command.join(\" \")}" }
-                                                    }
-                                                })}
-                                                {(!container.args.is_empty()).then(|| rsx! {
-                                                    div { class: "command-item",
-                                                        span { class: "command-label", "Args:" }
-                                                        span { class: "command-value", "{container.args.join(\" \")}" }
-                                                    }
-                                                })}
-                                            }
-                                        })}
-
-                                        // Environment Variables
-                                        {(!container.env.is_empty()).then(|| rsx! {
-                                            div { class: "env-section",
-                                                h6 { "Environment Variables" }
-                                                div { class: "env-grid",
-                                                    {container.env.iter().map(|env| rsx! {
-                                                        div { class: "env-item",
-                                                            span { class: "env-name", "{env.name}" }
-                                                            span { class: "env-value",
-                                                                {if let Some(value) = &env.value {
-                                                                    value.clone()
-                                                                } else if let Some(value_from) = &env.value_from {
-                                                                    format!("(from {})", value_from)
-                                                                } else {
-                                                                    "".to_string()
-                                                                }}
-                                                            }
-                                                        }
-                                                    })}
-                                                }
-                                            }
-                                        })}
-
-                                        // Resources
-                                        div { class: "resources-section",
-                                            h6 { "Resources" }
-                                            div { class: "resource-grid",
-                                                div { class: "resource-group",
-                                                    span { class: "resource-label", "Requests:" }
-                                                    {container.resources.requests.iter().map(|(key, value)| rsx! {
-                                                        div { class: "resource-item",
-                                                            span { class: "resource-key", "{key}" }
-                                                            span { class: "resource-value", "{value}" }
-                                                        }
-                                                    })}
-                                                }
-                                                div { class: "resource-group",
-                                                    span { class: "resource-label", "Limits:" }
-                                                    {container.resources.limits.iter().map(|(key, value)| rsx! {
-                                                        div { class: "resource-item",
-                                                            span { class: "resource-key", "{key}" }
-                                                            span { class: "resource-value", "{value}" }
-                                                        }
-                                                    })}
-                                                }
-                                            }
-                                        }
-
-                                        // Volume Mounts
-                                        {(!container.volume_mounts.is_empty()).then(|| rsx! {
-                                            div { class: "volume-mounts-section",
-                                                h6 { "Volume Mounts" }
-                                                div { class: "volume-mounts-grid",
-                                                    {container.volume_mounts.iter().map(|mount| rsx! {
-                                                        div { class: "volume-mount-item",
-                                                            span { class: "volume-name", "{mount.name}" }
-                                                            span { class: "mount-path", "{mount.mount_path}" }
-                                                            span { class: "read-only",
-                                                                if mount.read_only { "(read-only)" } else { "" }
-                                                            }
-                                                        }
-                                                    })}
-                                                }
-                                            }
-                                        })}
-                                    }
-                                })}
-                            }
+                        PodContainers {
+                            containers: job_data.containers.clone(),
+                            key_base: key_base.clone(),
                         }
                     })}
 
@@ -559,7 +465,7 @@ struct JobData {
     service_account: String,
     node_selector: Vec<(String, String)>,
     tolerations: Vec<Toleration>,
-    containers: Vec<ContainerInfo>,
+    containers: Vec<PodContainerInfo>,
     volumes: Vec<VolumeInfo>,
 }
 
@@ -569,37 +475,6 @@ struct Toleration {
     operator: String,
     value: String,
     effect: String,
-}
-
-#[derive(Clone)]
-struct ContainerInfo {
-    name: String,
-    image: String,
-    command: Vec<String>,
-    args: Vec<String>,
-    env: Vec<EnvVar>,
-    resources: Resources,
-    volume_mounts: Vec<VolumeMount>,
-}
-
-#[derive(Clone)]
-struct EnvVar {
-    name: String,
-    value: Option<String>,
-    value_from: Option<String>,
-}
-
-#[derive(Clone)]
-struct Resources {
-    requests: Vec<(String, String)>,
-    limits: Vec<(String, String)>,
-}
-
-#[derive(Clone)]
-struct VolumeMount {
-    name: String,
-    mount_path: String,
-    read_only: bool,
 }
 
 #[derive(Clone)]

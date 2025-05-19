@@ -1,0 +1,293 @@
+/* CronJobs Status Colors */
+.status-suspended {
+    background: rgba(148, 163, 184, 0.2);
+    color: #94a3b8;
+}
+
+.status-scheduled {
+    background: rgba(74, 222, 128, 0.2);
+    color: #4ade80;
+}
+
+.status-active {
+    background: rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+}
+
+/* CronJob Card Styles */
+.cronjob-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    cursor: default;
+}
+
+.cronjob-header-card {
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    transition: background-color 0.2s ease;
+}
+
+.cronjob-header-card:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.cronjob-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 200px;
+}
+
+.cronjob-title h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    user-select: text;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.cronjob-info-short {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-grow: 1;
+}
+
+.info-item-short {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: help;
+    user-select: text;
+}
+
+.cronjob-controls {
+    display: flex;
+    gap: 8px;
+}
+
+/* CronJob Details Section */
+.cronjob-details {
+    padding: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    animation: fadeIn 0.2s ease;
+}
+
+.cronjob-details h4 {
+    margin-top: 30px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+.info-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    user-select: none;
+}
+
+.info-value {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+    word-break: break-all;
+    user-select: text;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Expand/Collapse button */
+.expand-toggle {
+    transition: transform 0.2s ease;
+}
+
+.expand-toggle[title="Collapse"] {
+    transform: rotate(180deg);
+}
+
+/* Make sure buttons inherit styles from main.css */
+.btn-icon {
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    color: rgba(255, 255, 255, 0.6);
+    transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.labels-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: default;
+    user-select: text;
+}
+
+.label-key {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.label-value {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.annotation {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Status Colors */
+.status-pending {
+    background: rgba(234, 179, 8, 0.2);
+    color: rgb(234, 179, 8);
+}
+
+.status-running, .status-true {
+    background: rgba(74, 222, 128, 0.2);
+    color: rgb(74, 222, 128);
+}
+
+.status-unknown, .status-false {
+    background: rgba(148, 163, 184, 0.2);
+    color: rgb(148, 163, 184);
+}
+
+.status-failed {
+    background: rgba(239, 68, 68, 0.2);
+    color: rgb(239, 68, 68);
+}
+
+.status-warning {
+    background: rgba(234, 179, 8, 0.2);
+    color: rgb(234, 179, 8);
+}
+
+/* Containers section */
+.containers-section {
+    margin-bottom: 24px;
+}
+
+.containers-section h4 {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 12px 0;
+    user-select: none;
+}
+
+.containers-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.container-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.container-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.container-title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.container-title h5 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* --- Container and Header Styles --- */
+.cronjobs-container {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.cronjobs-header {
+    margin-bottom: 24px;
+}
+
+.header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+}
+
+.header-controls-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cronjob-count {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+    white-space: nowrap;
+    margin-left: 4px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.cronjobs-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}

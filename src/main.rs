@@ -2,12 +2,13 @@ use dioxus::prelude::*;
 use dioxus_desktop::{Config, WindowBuilder};
 use kube::Client;
 use views::{
-    Blog, ConfigMaps, CreatePod, DaemonSets, Deployments, Home, Ingresses, Jobs, Namespaces, Navbar,
+    Blog, ConfigMaps, CreatePod, CronJobs, DaemonSets, Deployments, Home, Ingresses, Jobs, Namespaces, Navbar,
     Nodes, Pods, Pvcs, Secrets, Services, StatefulSets,
 };
 
 mod components;
 mod views;
+mod utils;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -29,6 +30,8 @@ enum Route {
         StatefulSets {},
         #[route("/daemonsets")]
         DaemonSets {},
+        #[route("/cronjobs")]
+        CronJobs {},
         #[route("/jobs")]
         Jobs {},
         #[route("/services")]

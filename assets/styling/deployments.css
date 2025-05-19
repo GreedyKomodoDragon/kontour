@@ -3,8 +3,6 @@
     padding: 24px;
     max-width: 1400px; /* Consistent max-width */
     margin: 0 auto;
-    /* background-color: #111827; /* Dark background - removed as body likely has it */
-    /* color: rgba(255, 255, 255, 0.9); /* Default light text */
 }
 
 .deployments-header {
@@ -12,8 +10,6 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
-    /* border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
-    /* padding-bottom: 16px; */
 }
 
 /* --- Controls (Dark Theme) --- */
@@ -54,13 +50,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 12px; /* Match pods */
-    /* border-bottom: 1px solid rgba(255, 255, 255, 0.1); */ /* Removed border for cleaner look */
-    /* cursor: pointer; */ /* Keep if header toggles */
 }
-/* Optional hover effect if header is clickable */
-/* .deployment-header-card:hover {
-    background: rgba(255, 255, 255, 0.02);
-} */
 
 
 .deployment-title {

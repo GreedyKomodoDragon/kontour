@@ -398,3 +398,199 @@ html, body {
     font-size: 14px;
     margin: 10px 0;
 }
+
+/* --- Pod Containers Section --- */
+.containers-section {
+    margin: 12px 0;
+}
+
+.containers-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.container-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.section-header h5 {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+}
+
+.image-tag {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: monospace;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.command-section {
+    margin: 12px 0;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.command-item {
+    display: flex;
+    gap: 8px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    font-family: monospace;
+    margin: 4px 0;
+}
+
+.command-label {
+    color: rgba(255, 255, 255, 0.6);
+    min-width: 70px;
+}
+
+.command-value {
+    color: rgba(255, 255, 255, 0.9);
+    word-break: break-all;
+}
+
+.env-section {
+    margin: 12px 0;
+    margin-top: 24px;
+}
+
+.env-section h6 {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 8px 0;
+}
+
+.env-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.env-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.env-name {
+    color: rgba(255, 255, 255, 0.9);
+    font-family: monospace;
+}
+
+.env-value {
+    color: rgba(255, 255, 255, 0.6);
+    font-family: monospace;
+}
+
+.resources-section {
+    margin: 12px 0;
+    margin-top: 24px;
+}
+
+.resources-section h6 {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 8px 0;
+}
+
+.resource-grid {
+    display: flex;
+    gap: 16px;
+}
+
+.resource-group {
+    flex: 1;
+}
+
+.resource-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 4px;
+    display: block;
+}
+
+.resource-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    margin: 4px 0;
+}
+
+.resource-key {
+    color: rgba(255, 255, 255, 0.9);
+    font-family: monospace;
+}
+
+.resource-value {
+    color: rgba(255, 255, 255, 0.6);
+    font-family: monospace;
+}
+
+.volume-mounts-section {
+    margin: 12px 0;
+}
+
+.volume-mounts-section h6 {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 8px 0;
+}
+
+.volume-mounts-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.volume-mount-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.volume-name {
+    color: rgba(255, 255, 255, 0.9);
+    font-family: monospace;
+    min-width: 100px;
+}
+
+.mount-path {
+    color: rgba(255, 255, 255, 0.6);
+    font-family: monospace;
+    flex: 1;
+}
+
+.read-only {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 11px;
+}

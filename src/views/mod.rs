@@ -32,6 +32,9 @@ pub use secrets::Secrets; // Add export
 mod jobs;
 pub use jobs::Jobs;
 
+mod cronjobs;
+pub use cronjobs::CronJobs;
+
 mod home;
 pub use home::Home;
 

@@ -158,6 +158,11 @@ pub fn Navbar() -> Element {
                             "StatefulSets"
                         }
                         Link {
+                            to: Route::CronJobs {},
+                            class: "nav-cronjobs",
+                            "CronJobs"
+                        }
+                        Link {
                             to: Route::DaemonSets {},
                             class: "nav-daemonsets",
                             "DaemonSets"
