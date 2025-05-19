@@ -4,6 +4,7 @@ use crate::components::kubeconfig_name_dialog::KubeconfigNameDialog;
 use dioxus::{logger::tracing, prelude::*};
 
 const NAVBAR_CSS: Asset = asset!("/assets/styling/navbar.css");
+const DEPLOYMENT: Asset = asset!("/assets/images/deployment.svg");
 
 #[component]
 pub fn Navbar() -> Element {
@@ -127,16 +128,19 @@ pub fn Navbar() -> Element {
                         Link {
                             to: Route::Home {},
                             class: "nav-overview",
+                            img { src: "{DEPLOYMENT}", alt: "", class: "nav-icon" }
                             "Overview"
                         }
                         Link {
                             to: Route::Nodes {},
                             class: "nav-nodes",
+                            img { src: "/assets/icons/server.png", alt: "", class: "nav-icon" }
                             "Nodes"
                         }
                         Link {
                             to: Route::Namespaces {},
                             class: "nav-namespaces",
+                            img { src: "/assets/icons/folder.png", alt: "", class: "nav-icon" }
                             "Namespaces"
                         }
                     }
@@ -145,31 +149,37 @@ pub fn Navbar() -> Element {
                         Link {
                             to: Route::Pods {},
                             class: "nav-pods",
+                            img { src: "/assets/icons/cube.png", alt: "", class: "nav-icon" }
                             "Pods"
                         }
                         Link {
                             to: Route::Deployments {},
                             class: "nav-deployments",
+                            img { src: "/assets/icons/deployment.svg", alt: "", class: "nav-icon" }
                             "Deployments"
                         }
                         Link {
                             to: Route::StatefulSets {},
                             class: "nav-statefulsets",
+                            img { src: "/assets/icons/database.png", alt: "", class: "nav-icon" }
                             "StatefulSets"
-                        }
-                        Link {
-                            to: Route::CronJobs {},
-                            class: "nav-cronjobs",
-                            "CronJobs"
                         }
                         Link {
                             to: Route::DaemonSets {},
                             class: "nav-daemonsets",
+                            img { src: "/assets/icons/sync.png", alt: "", class: "nav-icon" }
                             "DaemonSets"
+                        }
+                        Link {
+                            to: Route::CronJobs {},
+                            class: "nav-cronjobs",
+                            img { src: "/assets/icons/clock.png", alt: "", class: "nav-icon" }
+                            "CronJobs"
                         }
                         Link {
                             to: Route::Jobs {},
                             class: "nav-jobs",
+                            img { src: "/assets/icons/task.png", alt: "", class: "nav-icon" }
                             "Jobs"
                         }
                     }
@@ -178,11 +188,13 @@ pub fn Navbar() -> Element {
                         Link {
                             to: Route::Services {},
                             class: "nav-services",
+                            img { src: "/assets/icons/network.png", alt: "", class: "nav-icon" }
                             "Services"
                         }
                         Link {
                             to: Route::Ingresses {},
                             class: "nav-ingress",
+                            img { src: "/assets/icons/arrow-right.png", alt: "", class: "nav-icon" }
                             "Ingress"
                         }
                     }
@@ -191,16 +203,19 @@ pub fn Navbar() -> Element {
                         Link {
                             to: Route::Pvcs {}, // Update route
                             class: "nav-pvcs",
+                            img { src: "/assets/icons/storage.png", alt: "", class: "nav-icon" }
                             "Persistent Volume Claims"
                         }
                         Link {
                             to: Route::ConfigMaps {}, // Update route
                             class: "nav-configmaps",
+                            img { src: "/assets/icons/settings.png", alt: "", class: "nav-icon" }
                             "Config Maps"
                         }
                         Link {
                             to: Route::Secrets {}, // Update route
                             class: "nav-secrets",
+                            img { src: "/assets/icons/lock.png", alt: "", class: "nav-icon" }
                             "Secrets"
                         }
                     }
@@ -209,6 +224,7 @@ pub fn Navbar() -> Element {
                         Link {
                             to: Route::Blog { id: 12 },
                             class: "nav-settings",
+                            img { src: "/assets/icons/gear.png", alt: "", class: "nav-icon" }
                             "Settings"
                         }
                     }
