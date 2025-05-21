@@ -49,3 +49,6 @@ pub use cronjob_item::CronJobItem;
 
 mod pod_containers;
 pub use pod_containers::*;
+
+mod namespace_item;
+pub use namespace_item::{NamespaceItem, ResourceQuota, LimitRange, NamespaceItemProps};

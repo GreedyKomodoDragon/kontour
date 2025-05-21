@@ -1,4 +1,4 @@
-use dioxus::{logger::tracing, prelude::*};
+use dioxus::{prelude::*};
 use k8s_openapi::api::core::v1::Namespace;
 use kube::{api::ListParams, Api, Client};
 

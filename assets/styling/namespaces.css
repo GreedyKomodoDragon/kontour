@@ -54,16 +54,9 @@
 /* Namespace cards grid */
 .namespaces-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 20px;
     max-width: 1400px;
     margin: 0 auto;
-}
-
-@media (min-width: 1400px) {
-    .namespaces-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
 }
 
 /* Resource metrics section */
