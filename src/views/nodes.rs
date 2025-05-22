@@ -1,6 +1,104 @@
-use dioxus::prelude::*;
+use dioxus::{logger::tracing, prelude::*};
+use k8s_openapi::{
+    api::core::v1::{Node, Pod},
+    apimachinery::pkg::api::resource::Quantity,
+};
+use kube::{api::ListParams, Api, Client};
+
+use crate::components::{NodeItem, NodeItemProps};
 
 const NODES_CSS: Asset = asset!("/assets/styling/nodes.css");
+
+#[derive(Clone)]
+struct NodeInfo {
+    node: Node,
+    pods: Vec<Pod>,
+}
+
+#[derive(Clone)]
+struct NodeFetcher {
+    client: Client,
+    nodes: Signal<Vec<NodeInfo>>,
+}
+
+impl NodeFetcher {
+    async fn fetch_node_info(client: Client, node_name: &str) -> NodeInfo {
+        let pods_api: Api<Pod> = Api::all(client.clone());
+        
+        let pods = match pods_api.list(&ListParams::default()).await {
+            Ok(pod_list) => pod_list.items.into_iter()
+                .filter(|pod| pod.spec.as_ref()
+                    .and_then(|spec| spec.node_name.as_ref())
+                    .map(|name| name == node_name)
+                    .unwrap_or(false))
+                .collect(),
+            Err(e) => {
+                tracing::error!("Failed to fetch pods for node {}: {:?}", node_name, e);
+                Vec::new()
+            }
+        };
+
+        NodeInfo {
+            node: Node::default(), // Will be filled in later
+            pods,
+        }
+    }
+
+    fn fetch(&self) {
+        let client = self.client.clone();
+        let mut nodes = self.nodes.clone();
+
+        tracing::info!("Starting node fetch...");
+
+        spawn(async move {
+            let api = Api::<Node>::all(client.clone());
+
+            match api.list(&ListParams::default()).await {
+                Ok(node_list) => {
+                    let mut node_infos = Vec::new();
+                    for node in node_list.items {
+                        if let Some(name) = &node.metadata.name {
+                            let mut info = Self::fetch_node_info(client.clone(), name).await;
+                            info.node = node;
+                            node_infos.push(info);
+                        }
+                    }
+                    nodes.set(node_infos);
+                }
+                Err(e) => {
+                    tracing::error!("Failed to fetch nodes: {:?}", e);
+                }
+            }
+        });
+    }
+
+    fn parse_resource_quantity(quantity: &str) -> f32 {
+        if quantity.is_empty() || quantity == "0" {
+            return 0.0;
+        }
+
+        // Parse CPU values
+        if quantity.ends_with('m') {
+            return quantity.trim_end_matches('m')
+                .parse::<f32>()
+                .map(|v| v / 1000.0)
+                .unwrap_or(0.0);
+        }
+
+        // Parse memory/storage values
+        if let Some(value) = quantity.strip_suffix("Ki") {
+            return value.parse::<f32>().map(|v| v / (1024.0 * 1024.0)).unwrap_or(0.0);
+        }
+        if let Some(value) = quantity.strip_suffix("Mi") {
+            return value.parse::<f32>().map(|v| v / 1024.0).unwrap_or(0.0);
+        }
+        if let Some(value) = quantity.strip_suffix("Gi") {
+            return value.parse::<f32>().ok().unwrap_or(0.0);
+        }
+
+        quantity.parse::<f32>().unwrap_or(0.0)
+    }
+}
 
 #[derive(Clone)]
 struct NodeData {
@@ -19,67 +117,161 @@ struct NodeData {
 
 #[component]
 pub fn Nodes() -> Element {
-    let selected_node = use_signal(|| "all");
+    let client = use_context::<Client>();
+    let mut selected_node = use_signal(|| String::from("all"));
     let search_query = use_signal(String::new);
+    let nodes = use_signal(|| Vec::<NodeInfo>::new());
 
-    let nodes = vec![
-        NodeData {
-            name: "master-1".into(),
-            node_type: "master".into(),
-            status: "Ready".into(),
-            kubernetes_version: "v1.28.1".into(),
-            os: "Ubuntu 22.04.3 LTS".into(),
-            architecture: "amd64".into(),
-            ip: "10.0.1.10".into(),
-            pods: (8, 20),
-            cpu_usage: 45.0,
-            memory_usage: 62.0,
-            storage_usage: 35.0,
-        },
-        NodeData {
-            name: "worker-1".into(),
-            node_type: "worker".into(),
-            status: "Ready".into(),
-            kubernetes_version: "v1.28.1".into(),
-            os: "Ubuntu 22.04.3 LTS".into(),
-            architecture: "amd64".into(),
-            ip: "10.0.1.11".into(),
-            pods: (12, 30),
-            cpu_usage: 65.0,
-            memory_usage: 78.0,
-            storage_usage: 45.0,
-        },
-        NodeData {
-            name: "worker-2".into(),
-            node_type: "worker".into(),
-            status: "Ready".into(),
-            kubernetes_version: "v1.28.1".into(),
-            os: "Ubuntu 22.04.3 LTS".into(),
-            architecture: "amd64".into(),
-            ip: "10.0.1.12".into(),
-            pods: (15, 30),
-            cpu_usage: 72.0,
-            memory_usage: 84.0,
-            storage_usage: 55.0,
-        },
-        NodeData {
-            name: "worker-3".into(),
-            node_type: "worker".into(),
-            status: "Ready".into(),
-            kubernetes_version: "v1.28.1".into(),
-            os: "Ubuntu 22.04.3 LTS".into(),
-            architecture: "amd64".into(),
-            ip: "10.0.1.13".into(),
-            pods: (10, 30),
-            cpu_usage: 58.0,
-            memory_usage: 71.0,
-            storage_usage: 40.0,
-        },
-    ];
+    let fetcher = NodeFetcher {
+        client: client.clone(),
+        nodes: nodes.clone(),
+    };
 
-    let filtered_nodes: Vec<_> = nodes
+    use_effect({
+        let fetcher = fetcher.clone();
+        move || fetcher.fetch()
+    });
+
+    let refresh = {
+        let fetcher = fetcher.clone();
+        move |_: Event<MouseData>| fetcher.fetch()
+    };
+
+    // Convert k8s Node objects to our display format
+    let node_data: Vec<NodeData> = nodes()
+        .into_iter()
+        .map(|node_info| {
+            let node = &node_info.node;
+            let name = node.metadata.name.clone().unwrap_or_default();
+            
+            // Determine node type based on labels
+            let node_type = if node.metadata.labels.as_ref()
+                .and_then(|labels| labels.get("node-role.kubernetes.io/control-plane"))
+                .is_some() 
+            {
+                "master"
+            } else {
+                "worker"
+            };
+
+            // Get status
+            let status = node.status.as_ref()
+                .and_then(|status| status.conditions.as_ref())
+                .and_then(|conditions| conditions.iter()
+                    .find(|cond| cond.type_ == "Ready"))
+                .map(|ready_cond| ready_cond.status.clone())
+                .unwrap_or_else(|| "Unknown".into());
+
+            // Get version
+            let kubernetes_version = node.status.as_ref()
+                .and_then(|status| status.node_info.as_ref())
+                .map(|info| info.kubelet_version.clone())
+                .unwrap_or_default();
+
+            // Get OS and architecture
+            let os = node.status.as_ref()
+                .and_then(|status| status.node_info.as_ref())
+                .map(|info| format!("{} {}", info.os_image, info.kernel_version))
+                .unwrap_or_default();
+
+            let architecture = node.status.as_ref()
+                .and_then(|status| status.node_info.as_ref())
+                .map(|info| info.architecture.clone())
+                .unwrap_or_default();
+
+            // Get IP
+            let ip = node.status.as_ref()
+                .and_then(|status| status.addresses.as_ref())
+                .and_then(|addresses| addresses.iter()
+                    .find(|addr| addr.type_ == "InternalIP"))
+                .map(|addr| addr.address.clone())
+                .unwrap_or_default();
+
+            // Calculate resource usage
+            let binding = std::collections::BTreeMap::new();
+            let allocatable = node.status.as_ref()
+                .and_then(|status| status.allocatable.as_ref())
+                .unwrap_or(&binding);
+
+            let capacity = node.status.as_ref()
+                .and_then(|status| status.capacity.as_ref())
+                .unwrap_or(&binding);
+
+            // Get pod counts
+            let max_pods = capacity.get("pods")
+                .map(|q| q.0.parse::<u32>().unwrap_or(0))
+                .unwrap_or(0);
+            let current_pods = node_info.pods.len() as u32;
+
+            // Calculate CPU usage (as percentage of capacity)
+            let cpu_total = NodeFetcher::parse_resource_quantity(&capacity.get("cpu")
+                .map(|q| q.0.clone())
+                .unwrap_or_else(|| "0".into()));
+            let cpu_allocatable = NodeFetcher::parse_resource_quantity(&allocatable.get("cpu")
+                .map(|q| q.0.clone())
+                .unwrap_or_else(|| "0".into()));
+            let cpu_usage = if cpu_total > 0.0 {
+                ((cpu_total - cpu_allocatable) / cpu_total * 100.0).max(0.0)
+            } else {
+                0.0
+            };
+
+            // Calculate memory usage
+            let memory_total = NodeFetcher::parse_resource_quantity(&capacity.get("memory")
+                .map(|q| q.0.clone())
+                .unwrap_or_else(|| "0".into()));
+            let memory_allocatable = NodeFetcher::parse_resource_quantity(&allocatable.get("memory")
+                .map(|q| q.0.clone())
+                .unwrap_or_else(|| "0".into()));
+            let memory_usage = if memory_total > 0.0 {
+                ((memory_total - memory_allocatable) / memory_total * 100.0).max(0.0)
+            } else {
+                0.0
+            };
+
+            // Calculate storage usage
+            let storage_total = NodeFetcher::parse_resource_quantity(&capacity.get("ephemeral-storage")
+                .map(|q| q.0.clone())
+                .unwrap_or_else(|| "0".into()));
+            let storage_allocatable = NodeFetcher::parse_resource_quantity(&allocatable.get("ephemeral-storage")
+                .map(|q| q.0.clone())
+                .unwrap_or_else(|| "0".into()));
+            let storage_usage = if storage_total > 0.0 {
+                ((storage_total - storage_allocatable) / storage_total * 100.0).max(0.0)
+            } else {
+                0.0
+            };
+
+            NodeData {
+                name,
+                node_type: node_type.into(),
+                status,
+                kubernetes_version,
+                os,
+                architecture,
+                ip,
+                pods: (current_pods, max_pods),
+                cpu_usage,
+                memory_usage,
+                storage_usage,
+            }
+        })
+        .collect();
+
+    let filtered_nodes: Vec<_> = node_data
         .iter()
-        .filter(|&node| selected_node() == "all" || node.node_type == selected_node())
+        .filter(|node| {
+            let type_match = selected_node() == "all" || node.node_type == selected_node();
+            let search_match = if search_query().is_empty() {
+                true
+            } else {
+                let query = search_query().to_lowercase();
+                node.name.to_lowercase().contains(&query) ||
+                node.ip.to_lowercase().contains(&query) ||
+                node.os.to_lowercase().contains(&query)
+            };
+            type_match && search_match
+        })
         .collect();
 
 
@@ -103,125 +295,38 @@ pub fn Nodes() -> Element {
                             class: "node-select",
                             value: "{selected_node.read()}",
                             onchange: move |evt| {
-                                // selected_node.set(evt.value.clone());
+                                let value = evt.value().to_string();
+                                selected_node.set(value);
                             },
                             option { value: "all", "All Nodes ({nodes.len()})" }
-                            option { value: "worker", "Worker Nodes (3)" }
-                            option { value: "master", "Master Node (1)" }
+                            option { value: "worker", "Worker Nodes ({node_data.iter().filter(|n| n.node_type == \"worker\").count()})" }
+                            option { value: "master", "Master Nodes ({node_data.iter().filter(|n| n.node_type == \"master\").count()})" }
                         }
                         span { class: "node-count", "{filtered_nodes.len()} nodes selected" }
                     }
                 }
                 div { class: "header-actions",
                     button { class: "btn btn-primary", "Add Node" }
-                    button { class: "btn btn-secondary", "Refresh" }
+                    button { class: "btn btn-secondary", onclick: refresh, "Refresh" }
                 }
             }
 
             div { class: "nodes-grid",
-                {
-                    filtered_nodes.iter().map(|node| {
-                    rsx! {
-                        div {
-                            key: "{node.name}",
-                            class: "node-card",
-                            div { class: "node-header",
-                                div { class: "node-title",
-                                    h3 { "{node.name}" }
-                                    span { class: "status-badge status-healthy", "{node.status}" }
-                                }
-                                div { class: "node-controls",
-                                    button { class: "btn-icon", title: "Cordon", "🔒" }
-                                    button { class: "btn-icon", title: "Drain", "⭕" }
-                                    button { class: "btn-icon", title: "Delete", "🗑️" }
-                                }
-                            }
-
-                            div { class: "resource-metrics",
-                                div { class: "metric",
-                                    span { class: "metric-label", "CPU" }
-                                    div { class: "node-progress-bar",
-                                        div {
-                                            class: "progress-fill",
-                                            style: "width: {node.cpu_usage}%"
-                                        }
-                                    }
-                                    span { class: "metric-value", "{node.cpu_usage}%" }
-                                }
-                                div { class: "metric",
-                                    span { class: "metric-label", "Memory" }
-                                    div { class: "node-progress-bar",
-                                        div {
-                                            class: "progress-fill",
-                                            style: "width: {node.memory_usage}%"
-                                        }
-                                    }
-                                    span { class: "metric-value", "{node.memory_usage}%" }
-                                }
-                                div { class: "metric",
-                                    span { class: "metric-label", "Storage" }
-                                    div { class: "node-progress-bar",
-                                        div {
-                                            class: "progress-fill",
-                                            style: "width: {node.storage_usage}%"
-                                        }
-                                    }
-                                    span { class: "metric-value", "{node.storage_usage}%" }
-                                }
-                            }
-
-                            div { class: "node-info",
-                                div { class: "info-group",
-                                    div { class: "info-item",
-                                        span { class: "info-label", "Kubernetes Version" }
-                                        span { class: "info-value", "{node.kubernetes_version}" }
-                                    }
-                                    div { class: "info-item",
-                                        span { class: "info-label", "OS" }
-                                        span { class: "info-value", "{node.os}" }
-                                    }
-                                    div { class: "info-item",
-                                        span { class: "info-label", "Architecture" }
-                                        span { class: "info-value", "{node.architecture}" }
-                                    }
-                                }
-                                div { class: "info-group",
-                                    div { class: "info-item",
-                                        span { class: "info-label", "Internal IP" }
-                                        span { class: "info-value", "{node.ip}" }
-                                    }
-                                    div { class: "info-item",
-                                        span { class: "info-label", "Pods" }
-                                        span { class: "info-value", "{node.pods.0}/{node.pods.1}" }
-                                    }
-                                }
-                            }
-
-                            div { class: "node-conditions",
-                                h4 { "Node Conditions" }
-                                div { class: "conditions-list",
-                                    div { class: "condition status-healthy",
-                                        span { class: "node-condition-type", "Ready" }
-                                        span { class: "node-condition-status", "True" }
-                                    }
-                                    div { class: "condition status-healthy",
-                                        span { class: "node-condition-type", "MemoryPressure" }
-                                        span { class: "node-condition-status", "False" }
-                                    }
-                                    div { class: "condition status-healthy",
-                                        span { class: "node-condition-type", "DiskPressure" }
-                                        span { class: "node-condition-status", "False" }
-                                    }
-                                    div { class: "condition status-healthy",
-                                        span { class: "node-condition-type", "PIDPressure" }
-                                        span { class: "node-condition-status", "False" }
-                                    }
-                                }
-                            }
-                        }
+                {filtered_nodes.iter().map(|node| rsx!(
+                    NodeItem {
+                        name: node.name.clone(),
+                        node_type: node.node_type.clone(),
+                        status: node.status.clone(),
+                        kubernetes_version: node.kubernetes_version.clone(),
+                        os: node.os.clone(),
+                        architecture: node.architecture.clone(),
+                        ip: node.ip.clone(),
+                        pods: node.pods,
+                        cpu_usage: node.cpu_usage,
+                        memory_usage: node.memory_usage,
+                        storage_usage: node.storage_usage,
                     }
-                })
-                }
+                ))}
             }
         }
     }

@@ -1,6 +1,11 @@
-//! The components module contains all shared components for our app. Components are the building blocks of dioxus apps.
-//! They can be used to defined common UI elements like buttons, forms, and modals. In this template, we define a Hero
-//! component  to be used in our app.
+//! The components module contains all shared commod pod_containers;
+pub use pod_containers::*;
+
+mod namespace_item;
+pub use namespace_item::{NamespaceItem, ResourceQuota, LimitRange, NamespaceItemProps};
+
+mod node_item;
+pub use node_item::{NodeItem, NodeItemProps};
 
 mod hero;
 pub mod kubeconfig_name_dialog;
@@ -48,7 +53,3 @@ mod cronjob_item;
 pub use cronjob_item::CronJobItem;
 
 mod pod_containers;
-pub use pod_containers::*;
-
-mod namespace_item;
-pub use namespace_item::{NamespaceItem, ResourceQuota, LimitRange, NamespaceItemProps};
