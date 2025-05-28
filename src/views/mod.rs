@@ -52,3 +52,6 @@ pub use pods::Pods;
 
 mod create_pod;
 pub use create_pod::CreatePod;
+
+mod create_namespace;
+pub use create_namespace::CreateNamespace;

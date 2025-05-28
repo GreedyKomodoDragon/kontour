@@ -400,7 +400,13 @@ pub fn Namespaces() -> Element {
                     }
                 }
                 div { class: "header-actions",
-                    button { class: "btn btn-primary", "Create Namespace" }
+                    button { 
+                        class: "btn btn-primary",
+                        onclick: move |_| {
+                            use_navigator().push("/namespaces/create");
+                        },
+                        "Create Namespace"
+                    }
                     button { class: "btn btn-secondary", onclick: refresh, "Refresh" }
                 }
             }

@@ -81,6 +81,9 @@ html, body {
     height: 32px;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    line-height: 1;
+    gap: 6px;
 }
 
 .btn-primary {
