@@ -61,3 +61,6 @@ pub use create_deployment::CreateDeployment;
 
 mod create_statefulset;
 pub use create_statefulset::CreateStatefulSet;
+
+mod create_daemonset;
+pub use create_daemonset::CreateDaemonSet;
