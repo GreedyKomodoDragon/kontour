@@ -58,3 +58,6 @@ pub use create_namespace::CreateNamespace;
 
 mod create_deployment;
 pub use create_deployment::CreateDeployment;
+
+mod create_statefulset;
+pub use create_statefulset::CreateStatefulSet;
