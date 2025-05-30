@@ -71,15 +71,138 @@ pub fn CreatePod() -> Element {
         }
     };
 
+    let mut error = use_signal(|| None::<String>);
+
     let submit = move |_| {
-        let name = name();
+        let name = name().clone();
+        let pod_name = name.clone();
         let namespace = namespace();
         let image = image();
+        let client = client.clone();
+        
+        // Basic validation
+        if name.is_empty() {
+            error.set(Some("Pod name is required".to_string()));
+            return;
+        }
+        if image.is_empty() {
+            error.set(Some("Container image is required".to_string()));
+            return;
+        }
+
+        error.set(None);
         
         spawn(async move {
-            // TODO: Implement pod creation
-            println!("Creating pod: {} in namespace: {} with image: {}", name, namespace, image);
-            navigate.push("/pods");
+            use k8s_openapi::api::core::v1::{Pod, PodSpec, Container, ResourceRequirements};
+            use k8s_openapi::apimachinery::pkg::api::resource::Quantity;
+            use kube::api::{PostParams, Api};
+            use std::collections::BTreeMap;
+
+            // Create resource requirements
+            let mut requests = BTreeMap::new();
+            let mut limits = BTreeMap::new();
+            
+            if !cpu_request().is_empty() {
+                requests.insert("cpu".to_string(), Quantity(cpu_request()));
+            }
+            if !memory_request().is_empty() {
+                requests.insert("memory".to_string(), Quantity(memory_request()));
+            }
+            if !cpu_limit().is_empty() {
+                limits.insert("cpu".to_string(), Quantity(cpu_limit()));
+            }
+            if !memory_limit().is_empty() {
+                limits.insert("memory".to_string(), Quantity(memory_limit()));
+            }
+
+            let resources = if !requests.is_empty() || !limits.is_empty() {
+                Some(ResourceRequirements {
+                    requests: if requests.is_empty() { None } else { Some(requests) },
+                    limits: if limits.is_empty() { None } else { Some(limits) },
+                    claims: None,
+                })
+            } else {
+                None
+            };
+
+            // Convert container ports
+            let ports = if ports().is_empty() {
+                None
+            } else {
+                Some(ports().into_iter().filter_map(|p| {
+                    if p.container_port.is_empty() {
+                        return None;
+                    }
+                    Some(k8s_openapi::api::core::v1::ContainerPort {
+                        container_port: p.container_port.parse().ok()?,
+                        protocol: Some(p.protocol),
+                        ..Default::default()
+                    })
+                }).collect())
+            };
+
+            // Convert environment variables
+            let env = if env_vars().is_empty() {
+                None
+            } else {
+                Some(env_vars().into_iter().filter_map(|e| {
+                    if e.name.is_empty() {
+                        return None;
+                    }
+                    Some(k8s_openapi::api::core::v1::EnvVar {
+                        name: e.name,
+                        value: Some(e.value),
+                        value_from: None,
+                    })
+                }).collect())
+            };
+
+            // Convert labels and annotations
+            let mut label_map = BTreeMap::new();
+            for label in labels() {
+                if !label.key.is_empty() && !label.value.is_empty() {
+                    label_map.insert(label.key, label.value);
+                }
+            }
+
+            let mut annotation_map = BTreeMap::new();
+            for annotation in annotations() {
+                if !annotation.key.is_empty() && !annotation.value.is_empty() {
+                    annotation_map.insert(annotation.key, annotation.value);
+                }
+            }
+
+            let pod = Pod {
+                metadata: k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta {
+                    name: Some(name),
+                    namespace: Some(namespace.clone()),
+                    labels: if label_map.is_empty() { None } else { Some(label_map) },
+                    annotations: if annotation_map.is_empty() { None } else { Some(annotation_map) },
+                    ..Default::default()
+                },
+                spec: Some(PodSpec {
+                    containers: vec![Container {
+                        name: pod_name,
+                        image: Some(image),
+                        ports,
+                        env,
+                        resources,
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                }),
+                ..Default::default()
+            };
+
+            let pods: Api<Pod> = Api::namespaced(client, &namespace);
+            match pods.create(&PostParams::default(), &pod).await {
+                Ok(_) => {
+                    navigate.push("/pods");
+                }
+                Err(e) => {
+                    error.set(Some(format!("Failed to create pod: {}", e)));
+                }
+            }
         });
     };
 
@@ -426,6 +549,10 @@ pub fn CreatePod() -> Element {
                     }
                 }
             }
+
+            {error().map(|err| rsx!(
+                div { class: "error-message", "{err}" }
+            ))}
 
             div { class: "button-group",
                 button {
