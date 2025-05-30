@@ -1,0 +1,227 @@
+.create-deployment-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.create-deployment-title {
+    color: #e5e5e5;
+    font-size: 1.75rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #2d3748;
+    padding-bottom: 0.5rem;
+}
+
+.form-group {
+    margin-bottom: 0.75rem;
+    width: 100%;
+}
+
+.form-grid {
+    max-width: 1000px;
+    margin: 0 auto 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(300px, 450px));
+    gap: 1.5rem 2rem;
+    justify-content: center;
+}
+
+.form-label {
+    display: block;
+    color: #e5e5e5;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.form-input, select.form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+    background: transparent;
+    color: #e5e5e5;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+    height: 2.75rem;
+    box-sizing: border-box;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #4a9eff;
+    box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.1);
+}
+
+select.form-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+
+.button-group {
+    max-width: 1000px;
+    margin: 3rem auto 0;
+    padding-top: 2rem;
+    border-top: 1px solid #2d3748;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-start;
+}
+
+.btn-create {
+    background: #4a9eff;
+    color: white;
+    padding: 0.75rem 1.75rem;
+    border-radius: 4px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 0.95rem;
+}
+
+.btn-create:hover {
+    background: #3182ce;
+}
+
+.btn-cancel {
+    background: #4a5568;
+    color: white;
+    padding: 0.75rem 1.75rem;
+    border-radius: 4px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 0.95rem;
+}
+
+.btn-cancel:hover {
+    background: #2d3748;
+}
+
+.section-title {
+    max-width: 1000px;
+    margin: 2rem 0 1rem;
+    color: #e5e5e5;
+    font-size: 1.1rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid #2d3748;
+    font-weight: 500;
+}
+
+.repeatable-section {
+    max-width: 1000px;
+    margin: 0 auto 1.5rem;
+    padding: 0.5rem 0;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.form-header {
+    margin-bottom: 1rem;
+}
+
+.form-header .form-group {
+    margin-bottom: 0;
+}
+
+.repeatable-section .form-row:not(.form-header) .form-group {
+    margin-bottom: 0.5rem;
+}
+
+.repeatable-section .btn-secondary {
+    margin-top: 1rem;
+    background: #2d3748;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.repeatable-section .btn-secondary:hover {
+    background: #4a5568;
+}
+
+.section {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 0.75rem 0;
+    user-select: none;
+}
+
+.section-header:hover {
+    opacity: 0.8;
+}
+
+.section-toggle {
+    color: #4a5568;
+    font-size: 1.25rem;
+    font-weight: bold;
+    transition: transform 0.2s ease;
+}
+
+.section:not(.section-open) .section-toggle {
+    transform: rotate(-90deg);
+}
+
+.section:not(.section-open) .section-content {
+    display: none;
+}
+
+.section-content {
+    animation: slideDown 0.3s ease-out;
+    transition: max-height 0.3s ease-out, opacity 0.2s ease-out;
+    max-height: 2000px;
+    opacity: 1;
+    overflow: hidden;
+}
+
+.section-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.error-message {
+    color: #ff4444;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: rgba(255, 68, 68, 0.1);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 68, 68, 0.3);
+    font-size: 13px;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
