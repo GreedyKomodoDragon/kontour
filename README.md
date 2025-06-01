@@ -1,42 +1,73 @@
-# Development
+# Kontour - Modern Kubernetes Desktop Manager
 
-Your new jumpstart project includes basic organization with an organized `assets` folder and a `components` folder. 
-If you chose to develop with the router feature, you will also have a `views` folder.
+A powerful, desktop-based Kubernetes management tool built with Rust and Dioxus. Kontour provides a modern, intuitive interface for managing your Kubernetes clusters with native performance and reliability.
 
+## ✨ Features
+
+- 🚀 **Performance**: Built with Rust for fast performance and reliability
+- 🎯 **Resource Management**: Comprehensive management of Kubernetes resources:
+  - Deployments, StatefulSets, and DaemonSets
+  - Pods and Services
+  - ConfigMaps and Secrets
+  - Jobs and CronJobs
+  - Ingresses and PVCs
+  - Namespaces and Nodes
+- 🎨 **Modern UI**: A clean & responsive interface built with Dioxus
+- 🔒 **Multiple Cluster Support**: Easily switch between different Kubernetes contexts (coming soon!)
+- 💻 **Desktop-First**: Native desktop application for macOS, Windows, and Linux
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Rust toolchain (latest stable version)
+- A valid kubeconfig file
+- Node.js and npm (for Tailwind CSS)
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+```bash
+cargo build
+npm install
 ```
-project/
-├─ assets/ # Any assets that are used by the app should be placed here
-├─ src/
-│  ├─ main.rs # The entrypoint for the app. It also defines the routes for the app.
-│  ├─ components/
-│  │  ├─ mod.rs # Defines the components module
-│  │  ├─ hero.rs # The Hero component for use in the home page
-│  ├─ views/ # The views each route will render in the app.
-│  │  ├─ mod.rs # Defines the module for the views route and re-exports the components for each route
-│  │  ├─ blog.rs # The component that will render at the /blog/:id route
-│  │  ├─ home.rs # The component that will render at the / route
-├─ Cargo.toml # The Cargo.toml file defines the dependencies and feature flags for your project
-```
 
-### Tailwind
-1. Install npm: https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
-2. Install the Tailwind CSS CLI: https://tailwindcss.com/docs/installation
-3. Run the following command in the root of the project to start the Tailwind CSS compiler:
-
+3. Start the Tailwind CSS compiler:
 ```bash
 npx tailwindcss -i ./input.css -o ./assets/tailwind.css --watch
 ```
 
-### Serving Your App
-
-Run the following command in the root of your project to start developing with the default platform:
-
-```bash
-dx serve
-```
-
-To run for a different platform, use the `--platform platform` flag. E.g.
+4. Run the application:
 ```bash
 dx serve --platform desktop
 ```
 
+## 🛠 Development
+
+The project uses:
+- [Dioxus](https://dioxuslabs.com/) for the UI framework
+- [kube-rs](https://kube.rs/) for Kubernetes API interactions
+
+### Project Structure
+
+```
+kontour/
+├── src/
+│   ├── components/    # Reusable UI components
+│   │   ├── pod_item.rs
+│   │   ├── deployment_item.rs
+│   │   └── ...
+│   ├── views/        # Main application views
+│   │   ├── pods.rs
+│   │   ├── deployments.rs
+│   │   └── ...
+│   ├── main.rs       # Application entry point
+│   └── utils.rs      # Utility functions
+├── assets/           # Static assets and styling
+└── examples/         # Example Kubernetes configurations
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
