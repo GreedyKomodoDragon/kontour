@@ -1,0 +1,154 @@
+/* Insights Container */
+.insights-container {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.insights-container h1 {
+    color: white;
+    font-size: 24px;
+    margin-bottom: 24px;
+}
+
+/* Insights Sections */
+.insights-section {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.insights-section h2 {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 18px;
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+/* Problem Pods Grid */
+.problem-pods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 16px;
+}
+
+.problem-pod-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.problem-pod-card.severity-high {
+    border-left: 4px solid #ef4444;
+}
+
+.problem-pod-card.severity-medium {
+    border-left: 4px solid #f59e0b;
+}
+
+.problem-pod-card.severity-low {
+    border-left: 4px solid #3b82f6;
+}
+
+.problem-pod-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.problem-pod-header h3 {
+    color: white;
+    font-size: 15px;
+    font-weight: 500;
+    margin: 0;
+}
+
+.pod-namespace {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+.issue-type {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.issue-details {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+}
+
+.stat-value {
+    color: white;
+    font-size: 24px;
+    font-weight: 500;
+}
+
+/* Resource Hotspots */
+.resource-hotspots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.hotspot-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 16px;
+}
+
+.hotspot-card h3 {
+    color: white;
+    font-size: 15px;
+    font-weight: 500;
+    margin: 0 0 12px 0;
+}
+
+.hotspot-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hotspot-content p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    margin: 0;
+}
+
+.usage-value {
+    color: #ef4444;
+    font-size: 14px;
+    font-weight: 500;
+}

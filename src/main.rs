@@ -4,7 +4,7 @@ use kube::Client;
 use views::{
     ConfigMaps, CreatePod, CronJobs, DaemonSets, Deployments, Home, Ingresses, Jobs, Namespaces, Navbar,
     Nodes, Pods, Pvcs, Secrets, Services, StatefulSets, CreateNamespace, CreateDeployment, CreateStatefulSet,
-    CreateDaemonSet, CreateCronJob,
+    CreateDaemonSet, CreateCronJob, Insights
 };
 
 mod components;
@@ -23,6 +23,8 @@ enum Route {
         Namespaces {},
         #[route("/namespaces/create")]
         CreateNamespace {},
+        #[route("/insights")]
+        Insights {},
         #[route("/pods")]
         Pods {},
         #[route("/pods/create")]

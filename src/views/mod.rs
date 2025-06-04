@@ -5,6 +5,9 @@
 mod deployments;
 pub use deployments::Deployments;
 
+mod insights;
+pub use insights::Insights;
+
 mod statefulsets;
 pub use statefulsets::StatefulSets;
 

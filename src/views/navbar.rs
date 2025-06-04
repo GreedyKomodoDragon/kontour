@@ -20,6 +20,7 @@ const INGRESS: Asset = asset!("/assets/images/ingress.svg");
 const PVC: Asset = asset!("/assets/images/pvc.svg");
 const CONFIGMAP: Asset = asset!("/assets/images/configmap.svg");
 const SECRET: Asset = asset!("/assets/images/secret.svg");
+const INSIGHTS: Asset = asset!("/assets/images/insights.svg");
 
 
 #[component]
@@ -146,6 +147,12 @@ pub fn Navbar() -> Element {
                             class: "nav-overview",
                             img { src: "{OVERVIEW}", alt: "", class: "nav-icon" }
                             "Overview"
+                        }
+                        Link {
+                            to: Route::Insights {},
+                            class: "nav-insights",
+                            img { src: "{INSIGHTS}", alt: "", class: "nav-icon" }
+                            "Insights"
                         }
                         Link {
                             to: Route::Nodes {},
