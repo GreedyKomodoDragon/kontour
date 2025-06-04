@@ -7,7 +7,7 @@ use k8s_openapi::{
 use kube::{api::PostParams, Api, Client};
 use std::collections::BTreeMap;
 
-const CREATE_DEPLOYMENT_CSS: Asset = asset!("/assets/styling/create_deployment.css");
+const CREATE_FORMS_CSS: Asset = asset!("/assets/styling/create_forms.css");
 
 #[derive(Default, Clone)]
 struct ContainerPort {
@@ -244,7 +244,7 @@ pub fn CreateDeployment() -> Element {
     };
 
     rsx! {
-        document::Link { rel: "stylesheet", href: CREATE_DEPLOYMENT_CSS }
+        document::Link { rel: "stylesheet", href: CREATE_FORMS_CSS }
         div { class: "create-deployment-container",
             h1 { class: "create-deployment-title", "Create Deployment" }
             
@@ -351,7 +351,7 @@ pub fn CreateDeployment() -> Element {
                             }
                         })}
                         button {
-                            class: "btn-secondary",
+                            class: "create-form-btn create-form-btn-secondary",
                             onclick: move |_| {
                                 let mut new_labels = labels();
                                 new_labels.push(KeyValuePair::default());
@@ -413,7 +413,7 @@ pub fn CreateDeployment() -> Element {
                             }
                         })}
                         button {
-                            class: "btn-secondary",
+                            class: "create-form-btn create-form-btn-secondary",
                             onclick: move |_| {
                                 let mut new_selectors = selectors();
                                 new_selectors.push(KeyValuePair::default());
@@ -475,7 +475,7 @@ pub fn CreateDeployment() -> Element {
                             }
                         })}
                         button {
-                            class: "btn-secondary",
+                            class: "create-form-btn create-form-btn-secondary",
                             onclick: move |_| {
                                 let mut new_annotations = annotations();
                                 new_annotations.push(KeyValuePair::default());
@@ -588,7 +588,7 @@ pub fn CreateDeployment() -> Element {
                             }
                         })}
                         button {
-                            class: "btn-secondary",
+                            class: "create-form-btn create-form-btn-secondary", 
                             onclick: move |_| {
                                 let mut new_ports = ports();
                                 new_ports.push(ContainerPort::default());
@@ -648,7 +648,7 @@ pub fn CreateDeployment() -> Element {
                             }
                         })}
                         button {
-                            class: "btn-secondary",
+                            class: "create-form-btn create-form-btn-secondary",
                             onclick: move |_| {
                                 let mut new_envs = env_vars();
                                 new_envs.push(EnvVar::default());
@@ -666,12 +666,12 @@ pub fn CreateDeployment() -> Element {
 
             div { class: "button-group",
                 button {
-                    class: "btn-create",
+                    class: "create-form-btn create-form-btn-primary",
                     onclick: submit,
                     "Create Deployment"
                 }
                 button {
-                    class: "btn-cancel",
+                    class: "create-form-btn create-form-btn-secondary",
                     onclick: move |_| {
                         navigate.push("/deployments");
                     },

@@ -4,7 +4,23 @@ use crate::components::kubeconfig_name_dialog::KubeconfigNameDialog;
 use dioxus::{logger::tracing, prelude::*};
 
 const NAVBAR_CSS: Asset = asset!("/assets/styling/navbar.css");
+
+// Import the asset macro for static assets
+const OVERVIEW: Asset = asset!("/assets/images/overview.svg");
+const NODES: Asset = asset!("/assets/images/nodes.svg");
+const NAMESPACE: Asset = asset!("/assets/images/namespace.svg");
 const DEPLOYMENT: Asset = asset!("/assets/images/deployment.svg");
+const POD: Asset = asset!("/assets/images/pod.svg");
+const STATEFULSETS: Asset = asset!("/assets/images/statefulset.svg");
+const DAEMONSETS: Asset = asset!("/assets/images/daemonset.svg");
+const CRONJOB: Asset = asset!("/assets/images/cronjob.svg");
+const JOB: Asset = asset!("/assets/images/job.svg");
+const SERVICE: Asset = asset!("/assets/images/service.svg");
+const INGRESS: Asset = asset!("/assets/images/ingress.svg");
+const PVC: Asset = asset!("/assets/images/pvc.svg");
+const CONFIGMAP: Asset = asset!("/assets/images/configmap.svg");
+const SECRET: Asset = asset!("/assets/images/secret.svg");
+
 
 #[component]
 pub fn Navbar() -> Element {
@@ -128,19 +144,19 @@ pub fn Navbar() -> Element {
                         Link {
                             to: Route::Home {},
                             class: "nav-overview",
-                            img { src: "{DEPLOYMENT}", alt: "", class: "nav-icon" }
+                            img { src: "{OVERVIEW}", alt: "", class: "nav-icon" }
                             "Overview"
                         }
                         Link {
                             to: Route::Nodes {},
                             class: "nav-nodes",
-                            img { src: "/assets/icons/server.png", alt: "", class: "nav-icon" }
+                            img { src: "{NODES}", alt: "", class: "nav-icon" }
                             "Nodes"
                         }
                         Link {
                             to: Route::Namespaces {},
                             class: "nav-namespaces",
-                            img { src: "/assets/icons/folder.png", alt: "", class: "nav-icon" }
+                            img { src: "{NAMESPACE}", alt: "", class: "nav-icon" }
                             "Namespaces"
                         }
                     }
@@ -149,37 +165,37 @@ pub fn Navbar() -> Element {
                         Link {
                             to: Route::Pods {},
                             class: "nav-pods",
-                            img { src: "/assets/icons/cube.png", alt: "", class: "nav-icon" }
+                            img { src: "{POD}", alt: "", class: "nav-icon" }
                             "Pods"
                         }
                         Link {
                             to: Route::Deployments {},
                             class: "nav-deployments",
-                            img { src: "/assets/icons/deployment.svg", alt: "", class: "nav-icon" }
+                            img { src: "{DEPLOYMENT}", alt: "", class: "nav-icon" }
                             "Deployments"
                         }
                         Link {
                             to: Route::StatefulSets {},
                             class: "nav-statefulsets",
-                            img { src: "/assets/icons/database.png", alt: "", class: "nav-icon" }
+                            img { src: "{STATEFULSETS}", alt: "", class: "nav-icon" }
                             "StatefulSets"
                         }
                         Link {
                             to: Route::DaemonSets {},
                             class: "nav-daemonsets",
-                            img { src: "/assets/icons/sync.png", alt: "", class: "nav-icon" }
+                            img { src: "{DAEMONSETS}", alt: "", class: "nav-icon" }
                             "DaemonSets"
                         }
                         Link {
                             to: Route::CronJobs {},
                             class: "nav-cronjobs",
-                            img { src: "/assets/icons/clock.png", alt: "", class: "nav-icon" }
+                            img { src: "{CRONJOB}", alt: "", class: "nav-icon" }
                             "CronJobs"
                         }
                         Link {
                             to: Route::Jobs {},
                             class: "nav-jobs",
-                            img { src: "/assets/icons/task.png", alt: "", class: "nav-icon" }
+                            img { src: "{JOB}", alt: "", class: "nav-icon" }
                             "Jobs"
                         }
                     }
@@ -188,46 +204,46 @@ pub fn Navbar() -> Element {
                         Link {
                             to: Route::Services {},
                             class: "nav-services",
-                            img { src: "/assets/icons/network.png", alt: "", class: "nav-icon" }
+                            img { src: "{SERVICE}", alt: "", class: "nav-icon" }
                             "Services"
                         }
                         Link {
                             to: Route::Ingresses {},
                             class: "nav-ingress",
-                            img { src: "/assets/icons/arrow-right.png", alt: "", class: "nav-icon" }
+                            img { src: "{INGRESS}", alt: "", class: "nav-icon" }
                             "Ingress"
                         }
                     }
                     div { class: "nav-group",
                         span { class: "nav-group-title", "STORAGE" }
                         Link {
-                            to: Route::Pvcs {}, // Update route
+                            to: Route::Pvcs {},
                             class: "nav-pvcs",
-                            img { src: "/assets/icons/storage.png", alt: "", class: "nav-icon" }
+                            img { src: "{PVC}", alt: "", class: "nav-icon" }
                             "Persistent Volume Claims"
                         }
                         Link {
-                            to: Route::ConfigMaps {}, // Update route
+                            to: Route::ConfigMaps {},
                             class: "nav-configmaps",
-                            img { src: "/assets/icons/settings.png", alt: "", class: "nav-icon" }
+                            img { src: "{CONFIGMAP}", alt: "", class: "nav-icon" }
                             "Config Maps"
                         }
                         Link {
-                            to: Route::Secrets {}, // Update route
+                            to: Route::Secrets {},
                             class: "nav-secrets",
-                            img { src: "/assets/icons/lock.png", alt: "", class: "nav-icon" }
+                            img { src: "{SECRET}", alt: "", class: "nav-icon" }
                             "Secrets"
                         }
                     }
-                    div { class: "nav-group",
-                        span { class: "nav-group-title", "SETTINGS" }
-                        Link {
-                            to: Route::Blog { id: 12 },
-                            class: "nav-settings",
-                            img { src: "/assets/icons/gear.png", alt: "", class: "nav-icon" }
-                            "Settings"
-                        }
-                    }
+                    // div { class: "nav-group",
+                    //     span { class: "nav-group-title", "SETTINGS" }
+                    //     Link {
+                    //         to: Route::Blog { id: 12 },
+                    //         class: "nav-settings",
+                    //         img { src: "/assets/icons/gear.png", alt: "", class: "nav-icon" }
+                    //         "Settings"
+                    //     }
+                    // }
                 }
             }
             // Main Content Outlet (Restored)

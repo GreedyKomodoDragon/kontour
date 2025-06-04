@@ -2,9 +2,9 @@ use dioxus::prelude::*;
 use dioxus_desktop::{Config, WindowBuilder};
 use kube::Client;
 use views::{
-    Blog, ConfigMaps, CreatePod, CronJobs, DaemonSets, Deployments, Home, Ingresses, Jobs, Namespaces, Navbar,
+    ConfigMaps, CreatePod, CronJobs, DaemonSets, Deployments, Home, Ingresses, Jobs, Namespaces, Navbar,
     Nodes, Pods, Pvcs, Secrets, Services, StatefulSets, CreateNamespace, CreateDeployment, CreateStatefulSet,
-    CreateDaemonSet,
+    CreateDaemonSet, CreateCronJob,
 };
 
 mod components;
@@ -41,6 +41,8 @@ enum Route {
         CreateDaemonSet {},
         #[route("/cronjobs")]
         CronJobs {},
+        #[route("/cronjobs/create")]
+        CreateCronJob {},
         #[route("/jobs")]
         Jobs {},
         #[route("/services")]
@@ -52,9 +54,7 @@ enum Route {
         #[route("/configmaps")]
         ConfigMaps {},
         #[route("/secrets")] 
-        Secrets {}, 
-        #[route("/blog/:id")]
-        Blog { id: i32 },
+        Secrets {},
 }
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");

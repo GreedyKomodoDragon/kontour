@@ -2,9 +2,6 @@
 //! Each submodule corresponds to a specific section of the application,
 //! encapsulating the layout and routing logic for that section.
 
-mod blog;
-pub use blog::Blog;
-
 mod deployments;
 pub use deployments::Deployments;
 
@@ -64,3 +61,6 @@ pub use create_statefulset::CreateStatefulSet;
 
 mod create_daemonset;
 pub use create_daemonset::CreateDaemonSet;
+
+mod create_cronjob;
+pub use create_cronjob::CreateCronJob;

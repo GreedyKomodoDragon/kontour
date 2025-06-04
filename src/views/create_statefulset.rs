@@ -1,14 +1,16 @@
 use dioxus::prelude::*;
 use k8s_openapi::{
     api::apps::v1::{StatefulSet, StatefulSetSpec},
-    api::core::v1::{Container, PersistentVolumeClaim, PersistentVolumeClaimSpec, PodSpec, PodTemplateSpec},
-    apimachinery::pkg::apis::meta::v1::LabelSelector,
+    api::core::v1::{
+        Container, PersistentVolumeClaim, PersistentVolumeClaimSpec, PodSpec, PodTemplateSpec,
+    },
     apimachinery::pkg::api::resource::Quantity,
+    apimachinery::pkg::apis::meta::v1::LabelSelector,
 };
 use kube::{api::PostParams, Api, Client};
 use std::collections::BTreeMap;
 
-const CREATE_STATEFULSET_CSS: Asset = asset!("/assets/styling/create_statefulset.css");
+const CREATE_FORMS_CSS: Asset = asset!("/assets/styling/create_forms.css");
 
 #[derive(Default, Clone)]
 struct ContainerPort {
@@ -45,13 +47,13 @@ struct VolumeClaimTemplate {
 pub fn CreateStatefulSet() -> Element {
     let client = use_context::<Client>();
     let navigate = use_navigator();
-    
+
     let mut name = use_signal(String::new);
     let mut namespace = use_signal(|| "default".to_string());
     let mut replicas = use_signal(|| "1".to_string());
     let mut image = use_signal(String::new);
     let mut service_name = use_signal(String::new);
-    
+
     // Resource requests/limits
     let mut cpu_request = use_signal(|| "100m".to_string());
     let mut memory_request = use_signal(|| "128Mi".to_string());
@@ -60,7 +62,7 @@ pub fn CreateStatefulSet() -> Element {
 
     // Container ports
     let mut ports = use_signal(|| vec![ContainerPort::default()]);
-    
+
     // Environment variables
     let mut env_vars = use_signal(|| vec![EnvVar::default()]);
 
@@ -70,19 +72,23 @@ pub fn CreateStatefulSet() -> Element {
     let mut annotations = use_signal(|| vec![KeyValuePair::default()]);
 
     // Volume claim templates
-    let mut volume_claims = use_signal(|| vec![VolumeClaimTemplate {
-        name: "data".to_string(),
-        storage_size: "1Gi".to_string(),
-        storage_class: "standard".to_string(),
-        ..Default::default()
-    }]);
-    
+    let mut volume_claims = use_signal(|| {
+        vec![VolumeClaimTemplate {
+            name: "data".to_string(),
+            storage_size: "1Gi".to_string(),
+            storage_class: "standard".to_string(),
+            ..Default::default()
+        }]
+    });
+
     // Volume mounts
-    let mut volume_mounts = use_signal(|| vec![VolumeMount {
-        name: "data".to_string(),
-        mount_path: "/data".to_string(),
-        ..Default::default()
-    }]);
+    let mut volume_mounts = use_signal(|| {
+        vec![VolumeMount {
+            name: "data".to_string(),
+            mount_path: "/data".to_string(),
+            ..Default::default()
+        }]
+    });
 
     let mut sections_state = use_signal(|| {
         vec![
@@ -94,7 +100,9 @@ pub fn CreateStatefulSet() -> Element {
             ("ports", false),
             ("env", false),
             ("storage", false),
-        ].into_iter().collect::<std::collections::HashMap<&'static str, bool>>()
+        ]
+        .into_iter()
+        .collect::<std::collections::HashMap<&'static str, bool>>()
     });
 
     let mut toggle_section = move |section: &'static str| {
@@ -145,14 +153,14 @@ pub fn CreateStatefulSet() -> Element {
         };
 
         error.set(None);
-        
+
         spawn(async move {
             use k8s_openapi::api::core::v1::ResourceRequirements;
 
             // Create resource requirements
             let mut requests = BTreeMap::new();
             let mut limits = BTreeMap::new();
-            
+
             if !cpu_request().is_empty() {
                 requests.insert("cpu".to_string(), Quantity(cpu_request()));
             }
@@ -168,8 +176,16 @@ pub fn CreateStatefulSet() -> Element {
 
             let resources = if !requests.is_empty() || !limits.is_empty() {
                 Some(ResourceRequirements {
-                    requests: if requests.is_empty() { None } else { Some(requests) },
-                    limits: if limits.is_empty() { None } else { Some(limits) },
+                    requests: if requests.is_empty() {
+                        None
+                    } else {
+                        Some(requests)
+                    },
+                    limits: if limits.is_empty() {
+                        None
+                    } else {
+                        Some(limits)
+                    },
                     claims: None,
                 })
             } else {
@@ -180,76 +196,94 @@ pub fn CreateStatefulSet() -> Element {
             let ports = if ports().is_empty() {
                 None
             } else {
-                Some(ports().into_iter().filter_map(|p| {
-                    if p.container_port.is_empty() {
-                        return None;
-                    }
-                    Some(k8s_openapi::api::core::v1::ContainerPort {
-                        container_port: p.container_port.parse().ok()?,
-                        protocol: Some(p.protocol),
-                        ..Default::default()
-                    })
-                }).collect())
+                Some(
+                    ports()
+                        .into_iter()
+                        .filter_map(|p| {
+                            if p.container_port.is_empty() {
+                                return None;
+                            }
+                            Some(k8s_openapi::api::core::v1::ContainerPort {
+                                container_port: p.container_port.parse().ok()?,
+                                protocol: Some(p.protocol),
+                                ..Default::default()
+                            })
+                        })
+                        .collect(),
+                )
             };
 
             // Convert environment variables
             let env = if env_vars().is_empty() {
                 None
             } else {
-                Some(env_vars().into_iter().filter_map(|e| {
-                    if e.name.is_empty() {
-                        return None;
-                    }
-                    Some(k8s_openapi::api::core::v1::EnvVar {
-                        name: e.name,
-                        value: Some(e.value),
-                        value_from: None,
-                    })
-                }).collect())
+                Some(
+                    env_vars()
+                        .into_iter()
+                        .filter_map(|e| {
+                            if e.name.is_empty() {
+                                return None;
+                            }
+                            Some(k8s_openapi::api::core::v1::EnvVar {
+                                name: e.name,
+                                value: Some(e.value),
+                                value_from: None,
+                            })
+                        })
+                        .collect(),
+                )
             };
 
             // Convert volume mounts
-            let volume_mounts = volume_mounts().into_iter().filter_map(|vm| {
-                if vm.name.is_empty() || vm.mount_path.is_empty() {
-                    return None;
-                }
-                Some(k8s_openapi::api::core::v1::VolumeMount {
-                    name: vm.name,
-                    mount_path: vm.mount_path,
-                    ..Default::default()
+            let volume_mounts = volume_mounts()
+                .into_iter()
+                .filter_map(|vm| {
+                    if vm.name.is_empty() || vm.mount_path.is_empty() {
+                        return None;
+                    }
+                    Some(k8s_openapi::api::core::v1::VolumeMount {
+                        name: vm.name,
+                        mount_path: vm.mount_path,
+                        ..Default::default()
+                    })
                 })
-            }).collect::<Vec<_>>();
+                .collect::<Vec<_>>();
 
             // Convert volume claim templates
-            let volume_claim_templates = volume_claims().into_iter().filter_map(|vc| {
-                if vc.name.is_empty() || vc.storage_size.is_empty() {
-                    return None;
-                }
-                Some(PersistentVolumeClaim {
-                    metadata: k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta {
-                        name: Some(vc.name),
-                        ..Default::default()
-                    },
-                    spec: Some(PersistentVolumeClaimSpec {
-                        access_modes: Some(vec!["ReadWriteOnce".to_string()]),
-                        resources: Some(k8s_openapi::api::core::v1::VolumeResourceRequirements {
-                            requests: Some({
-                                let mut m = BTreeMap::new();
-                                m.insert("storage".to_string(), Quantity(vc.storage_size));
-                                m
-                            }),
-                            limits: None,
-                        }),
-                        storage_class_name: if vc.storage_class.is_empty() {
-                            None
-                        } else {
-                            Some(vc.storage_class)
+            let volume_claim_templates = volume_claims()
+                .into_iter()
+                .filter_map(|vc| {
+                    if vc.name.is_empty() || vc.storage_size.is_empty() {
+                        return None;
+                    }
+                    Some(PersistentVolumeClaim {
+                        metadata: k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta {
+                            name: Some(vc.name),
+                            ..Default::default()
                         },
+                        spec: Some(PersistentVolumeClaimSpec {
+                            access_modes: Some(vec!["ReadWriteOnce".to_string()]),
+                            resources: Some(
+                                k8s_openapi::api::core::v1::VolumeResourceRequirements {
+                                    requests: Some({
+                                        let mut m = BTreeMap::new();
+                                        m.insert("storage".to_string(), Quantity(vc.storage_size));
+                                        m
+                                    }),
+                                    limits: None,
+                                },
+                            ),
+                            storage_class_name: if vc.storage_class.is_empty() {
+                                None
+                            } else {
+                                Some(vc.storage_class)
+                            },
+                            ..Default::default()
+                        }),
                         ..Default::default()
-                    }),
-                    ..Default::default()
+                    })
                 })
-            }).collect::<Vec<_>>();
+                .collect::<Vec<_>>();
 
             // Convert labels and selectors
             let mut label_map = BTreeMap::new();
@@ -277,22 +311,36 @@ pub fn CreateStatefulSet() -> Element {
                 metadata: k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta {
                     name: Some(name),
                     namespace: Some(namespace.clone()),
-                    labels: if label_map.is_empty() { None } else { Some(label_map.clone()) },
-                    annotations: if annotation_map.is_empty() { None } else { Some(annotation_map) },
+                    labels: if label_map.is_empty() {
+                        None
+                    } else {
+                        Some(label_map.clone())
+                    },
+                    annotations: if annotation_map.is_empty() {
+                        None
+                    } else {
+                        Some(annotation_map)
+                    },
                     ..Default::default()
                 },
                 spec: Some(StatefulSetSpec {
                     replicas: Some(replicas),
                     service_name,
                     selector: LabelSelector {
-                        match_labels: if selector_map.is_empty() { None } else { Some(selector_map) },
+                        match_labels: if selector_map.is_empty() {
+                            None
+                        } else {
+                            Some(selector_map)
+                        },
                         match_expressions: None,
                     },
                     template: PodTemplateSpec {
-                        metadata: Some(k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta {
-                            labels: Some(label_map),
-                            ..Default::default()
-                        }),
+                        metadata: Some(
+                            k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta {
+                                labels: Some(label_map),
+                                ..Default::default()
+                            },
+                        ),
                         spec: Some(PodSpec {
                             containers: vec![Container {
                                 name: statefulset_name,
@@ -300,7 +348,11 @@ pub fn CreateStatefulSet() -> Element {
                                 ports,
                                 env,
                                 resources,
-                                volume_mounts: if volume_mounts.is_empty() { None } else { Some(volume_mounts) },
+                                volume_mounts: if volume_mounts.is_empty() {
+                                    None
+                                } else {
+                                    Some(volume_mounts)
+                                },
                                 ..Default::default()
                             }],
                             ..Default::default()
@@ -313,7 +365,10 @@ pub fn CreateStatefulSet() -> Element {
             };
 
             let statefulsets: Api<StatefulSet> = Api::namespaced(client, &namespace);
-            match statefulsets.create(&PostParams::default(), &statefulset).await {
+            match statefulsets
+                .create(&PostParams::default(), &statefulset)
+                .await
+            {
                 Ok(_) => {
                     navigate.push("/statefulsets");
                 }
@@ -325,10 +380,10 @@ pub fn CreateStatefulSet() -> Element {
     };
 
     rsx! {
-        document::Link { rel: "stylesheet", href: CREATE_STATEFULSET_CSS }
+        document::Link { rel: "stylesheet", href: CREATE_FORMS_CSS }
         div { class: "create-statefulset-container",
             h1 { class: "create-statefulset-title", "Create StatefulSet" }
-            
+
             // Basic Info Section
             div { class: section_class("basic"),
                 div {
@@ -442,7 +497,7 @@ pub fn CreateStatefulSet() -> Element {
                             }
                         })}
                         button {
-                            class: "btn-secondary",
+                            class: "create-form-btn create-form-btn-secondary",
                             onclick: move |_| {
                                 let mut new_labels = labels();
                                 new_labels.push(KeyValuePair::default());
@@ -504,7 +559,7 @@ pub fn CreateStatefulSet() -> Element {
                             }
                         })}
                         button {
-                            class: "btn-secondary",
+                            class: "create-form-btn create-form-btn-secondary",
                             onclick: move |_| {
                                 let mut new_selectors = selectors();
                                 new_selectors.push(KeyValuePair::default());
@@ -564,16 +619,15 @@ pub fn CreateStatefulSet() -> Element {
                                     }
                                 }
                             }
-                        })}
-                        button {
-                            class: "btn-secondary",
-                            onclick: move |_| {
-                                let mut new_annotations = annotations();
-                                new_annotations.push(KeyValuePair::default());
-                                annotations.set(new_annotations);
-                            },
-                            "Add Annotation"
-                        }
+                        })}                                button {
+                                    class: "create-form-btn create-form-btn-secondary",
+                                    onclick: move |_| {
+                                        let mut new_annotations = annotations();
+                                        new_annotations.push(KeyValuePair::default());
+                                        annotations.set(new_annotations);
+                                    },
+                                    "Add Annotation"
+                                }
                     }
                 }
             }
@@ -853,12 +907,12 @@ pub fn CreateStatefulSet() -> Element {
 
             div { class: "button-group",
                 button {
-                    class: "btn-create",
+                    class: "create-form-btn create-form-btn-primary",
                     onclick: submit,
                     "Create StatefulSet"
                 }
                 button {
-                    class: "btn-cancel",
+                    class: "create-form-btn create-form-btn-secondary",
                     onclick: move |_| {
                         navigate.push("/statefulsets");
                     },

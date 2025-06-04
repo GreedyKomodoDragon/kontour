@@ -1,0 +1,13 @@
+<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <g data-name="Layer 2">
+        <g data-name="invisible box" fill="none">
+            <path d="M0 0h48v48H0z" />
+            <path d="M0 0h48v48H0z" />
+            <path d="M0 0h48v48H0z" />
+        </g>
+        <path
+            fill="white"
+            d="M34 9.4 24 2 14 9.4v9.1L24 26l10-7.5zm-32 20v9.1L12 46l10-7.5v-9.1L12 22zM36 22l-10 7.4v9.1L36 46l10-7.5v-9.1z"
+            data-name="Q3 icons" />
+    </g>
+</svg>

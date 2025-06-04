@@ -8,7 +8,7 @@ use k8s_openapi::{
 use kube::{api::PostParams, Api, Client};
 use std::collections::BTreeMap;
 
-const CREATE_DAEMONSET_CSS: Asset = asset!("/assets/styling/create_daemonset.css");
+const CREATE_FORMS_CSS: Asset = asset!("/assets/styling/create_forms.css");
 
 #[derive(Default, Clone)]
 struct ContainerPort {
@@ -233,7 +233,7 @@ pub fn CreateDaemonSet() -> Element {
     };
 
     rsx! {
-        document::Link { rel: "stylesheet", href: CREATE_DAEMONSET_CSS }
+        document::Link { rel: "stylesheet", href: CREATE_FORMS_CSS }
         div { class: "create-daemonset-container",
             h1 { class: "create-daemonset-title", "Create DaemonSet" }
             
@@ -329,7 +329,7 @@ pub fn CreateDaemonSet() -> Element {
                             }
                         })}
                         button {
-                            class: "btn-secondary",
+                            class: "create-form-btn create-form-btn-secondary",
                             onclick: move |_| {
                                 let mut new_labels = labels();
                                 new_labels.push(KeyValuePair::default());
@@ -391,7 +391,7 @@ pub fn CreateDaemonSet() -> Element {
                             }
                         })}
                         button {
-                            class: "btn-secondary",
+                            class: "create-form-btn create-form-btn-secondary",
                             onclick: move |_| {
                                 let mut new_selectors = selectors();
                                 new_selectors.push(KeyValuePair::default());
@@ -453,7 +453,7 @@ pub fn CreateDaemonSet() -> Element {
                             }
                         })}
                         button {
-                            class: "btn-secondary",
+                            class: "create-form-btn create-form-btn-secondary",
                             onclick: move |_| {
                                 let mut new_annotations = annotations();
                                 new_annotations.push(KeyValuePair::default());
@@ -566,7 +566,7 @@ pub fn CreateDaemonSet() -> Element {
                             }
                         })}
                         button {
-                            class: "btn-secondary",
+                            class: "create-form-btn create-form-btn-secondary",
                             onclick: move |_| {
                                 let mut new_ports = ports();
                                 new_ports.push(ContainerPort::default());
@@ -626,7 +626,7 @@ pub fn CreateDaemonSet() -> Element {
                             }
                         })}
                         button {
-                            class: "btn-secondary",
+                            class: "create-form-btn create-form-btn-secondary",
                             onclick: move |_| {
                                 let mut new_envs = env_vars();
                                 new_envs.push(EnvVar::default());
@@ -644,12 +644,12 @@ pub fn CreateDaemonSet() -> Element {
 
             div { class: "button-group",
                 button {
-                    class: "btn-create",
+                    class: "create-form-btn create-form-btn-primary",
                     onclick: submit,
                     "Create DaemonSet"
                 }
                 button {
-                    class: "btn-cancel",
+                    class: "create-form-btn create-form-btn-secondary",
                     onclick: move |_| {
                         navigate.push("/daemonsets");
                     },

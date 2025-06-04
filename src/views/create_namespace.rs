@@ -3,7 +3,7 @@ use k8s_openapi::{api::core::v1::Namespace, apimachinery::pkg::apis::meta::v1::O
 use kube::{api::PostParams, Api, Client};
 use std::collections::BTreeMap;
 
-const CREATE_NAMESPACE_CSS: Asset = asset!("/assets/styling/create_namespace.css");
+const CREATE_FORMS_CSS: Asset = asset!("/assets/styling/create_forms.css");
 
 #[component]
 pub fn CreateNamespace() -> Element {
@@ -76,7 +76,7 @@ pub fn CreateNamespace() -> Element {
     };
 
     rsx! {
-        document::Link { rel: "stylesheet", href: CREATE_NAMESPACE_CSS }
+        document::Link { rel: "stylesheet", href: CREATE_FORMS_CSS }
 
         div { class: "create-namespace-container",
             div { class: "create-namespace-header",

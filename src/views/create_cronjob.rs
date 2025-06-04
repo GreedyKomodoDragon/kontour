@@ -1,5 +1,11 @@
 use dioxus::prelude::*;
-use kube::Client;
+use k8s_openapi::{
+    api::batch::v1::{CronJob, CronJobSpec, JobSpec, JobTemplateSpec},
+    api::core::v1::{Container, PodSpec, PodTemplateSpec},
+    apimachinery::pkg::api::resource::Quantity,
+};
+use kube::{api::PostParams, Api, Client};
+use std::collections::BTreeMap;
 
 const CREATE_FORMS_CSS: Asset = asset!("/assets/styling/create_forms.css");
 
@@ -22,13 +28,16 @@ struct KeyValuePair {
 }
 
 #[component]
-pub fn CreatePod() -> Element {
+pub fn CreateCronJob() -> Element {
     let client = use_context::<Client>();
     let navigate = use_navigator();
     
     let mut name = use_signal(String::new);
     let mut namespace = use_signal(|| "default".to_string());
+    let mut schedule = use_signal(|| "0 * * * *".to_string());  // Default to hourly
     let mut image = use_signal(String::new);
+    let mut concurrency_policy = use_signal(|| "Allow".to_string());
+    let mut starting_deadline_seconds = use_signal(String::new);
     
     // Resource requests/limits
     let mut cpu_request = use_signal(|| "100m".to_string());
@@ -42,13 +51,14 @@ pub fn CreatePod() -> Element {
     // Environment variables
     let mut env_vars = use_signal(|| vec![EnvVar::default()]);
 
-    // Pod labels
+    // Labels and annotations
     let mut labels = use_signal(|| vec![KeyValuePair::default()]);
     let mut annotations = use_signal(|| vec![KeyValuePair::default()]);
 
     let mut sections_state = use_signal(|| {
         vec![
             ("basic", false),
+            ("schedule", false),
             ("labels", false),
             ("annotations", false),
             ("resources", false),
@@ -75,14 +85,19 @@ pub fn CreatePod() -> Element {
 
     let submit = move |_| {
         let name = name().clone();
-        let pod_name = name.clone();
+        let cronjob_name = name.clone();
         let namespace = namespace();
+        let schedule = schedule();
         let image = image();
         let client = client.clone();
-        
+
         // Basic validation
         if name.is_empty() {
-            error.set(Some("Pod name is required".to_string()));
+            error.set(Some("CronJob name is required".to_string()));
+            return;
+        }
+        if schedule.is_empty() {
+            error.set(Some("Schedule is required".to_string()));
             return;
         }
         if image.is_empty() {
@@ -93,10 +108,7 @@ pub fn CreatePod() -> Element {
         error.set(None);
         
         spawn(async move {
-            use k8s_openapi::api::core::v1::{Pod, PodSpec, Container, ResourceRequirements};
-            use k8s_openapi::apimachinery::pkg::api::resource::Quantity;
-            use kube::api::{PostParams, Api};
-            use std::collections::BTreeMap;
+            use k8s_openapi::api::core::v1::ResourceRequirements;
 
             // Create resource requirements
             let mut requests = BTreeMap::new();
@@ -172,35 +184,57 @@ pub fn CreatePod() -> Element {
                 }
             }
 
-            let pod = Pod {
+            let cronjob = CronJob {
                 metadata: k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta {
                     name: Some(name),
                     namespace: Some(namespace.clone()),
-                    labels: if label_map.is_empty() { None } else { Some(label_map) },
+                    labels: if label_map.is_empty() { None } else { Some(label_map.clone()) },
                     annotations: if annotation_map.is_empty() { None } else { Some(annotation_map) },
                     ..Default::default()
                 },
-                spec: Some(PodSpec {
-                    containers: vec![Container {
-                        name: pod_name,
-                        image: Some(image),
-                        ports,
-                        env,
-                        resources,
-                        ..Default::default()
-                    }],
+                spec: Some(CronJobSpec {
+                    schedule,
+                    concurrency_policy: Some(concurrency_policy()),
+                    starting_deadline_seconds: starting_deadline_seconds()
+                        .parse()
+                        .ok()
+                        .map(|s: i64| s),
+                    job_template: JobTemplateSpec {
+                        metadata: None,
+                        spec: Some(JobSpec {
+                            template: PodTemplateSpec {
+                                metadata: Some(k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta {
+                                    labels: Some(label_map),
+                                    ..Default::default()
+                                }),
+                                spec: Some(PodSpec {
+                                    containers: vec![Container {
+                                        name: cronjob_name,
+                                        image: Some(image),
+                                        ports,
+                                        env,
+                                        resources,
+                                        ..Default::default()
+                                    }],
+                                    restart_policy: Some("OnFailure".to_string()),
+                                    ..Default::default()
+                                }),
+                            },
+                            ..Default::default()
+                        }),
+                    },
                     ..Default::default()
                 }),
-                ..Default::default()
+                status: None,
             };
 
-            let pods: Api<Pod> = Api::namespaced(client, &namespace);
-            match pods.create(&PostParams::default(), &pod).await {
+            let cronjobs: Api<CronJob> = Api::namespaced(client, &namespace);
+            match cronjobs.create(&PostParams::default(), &cronjob).await {
                 Ok(_) => {
-                    navigate.push("/pods");
+                    navigate.push("/cronjobs");
                 }
                 Err(e) => {
-                    error.set(Some(format!("Failed to create pod: {}", e)));
+                    error.set(Some(format!("Failed to create cronjob: {}", e)));
                 }
             }
         });
@@ -208,8 +242,8 @@ pub fn CreatePod() -> Element {
 
     rsx! {
         document::Link { rel: "stylesheet", href: CREATE_FORMS_CSS }
-        div { class: "create-pod-container",
-            h1 { class: "create-pod-title", "Create Pod" }
+        div { class: "create-cronjob-container",
+            h1 { class: "create-cronjob-title", "Create CronJob" }
             
             // Basic Info Section
             div { class: section_class("basic"),
@@ -222,10 +256,10 @@ pub fn CreatePod() -> Element {
                 div { class: "section-content",
                     div { class: "form-grid",
                         div { class: "form-group",
-                            label { class: "form-label", "Pod Name" }
+                            label { class: "form-label", "CronJob Name" }
                             input {
                                 class: "form-input",
-                                placeholder: "Enter pod name",
+                                placeholder: "Enter cronjob name",
                                 value: "{name}",
                                 oninput: move |evt| name.set(evt.value().clone())
                             }
@@ -244,9 +278,59 @@ pub fn CreatePod() -> Element {
                             label { class: "form-label", "Container Image" }
                             input {
                                 class: "form-input",
-                                placeholder: "e.g., nginx:latest",
+                                placeholder: "e.g., backup-tool:latest",
                                 value: "{image}",
                                 oninput: move |evt| image.set(evt.value().clone())
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Schedule Section 
+            div { class: section_class("schedule"),
+                div {
+                    class: "section-header",
+                    onclick: move |_| toggle_section("schedule"),
+                    h2 { class: "section-title", "Schedule Configuration" }
+                    span { class: "section-toggle", "▼" }
+                }
+                div { class: "section-content",
+                    div { class: "form-grid",
+                        div { class: "form-group",
+                            label { class: "form-label", "Schedule (Cron Format)" }
+                            input {
+                                class: "form-input",
+                                placeholder: "0 * * * *",
+                                value: "{schedule}",
+                                oninput: move |evt| schedule.set(evt.value().clone())
+                            }
+                            div { class: "form-help",
+                                "Format: minute hour day-of-month month day-of-week"
+                            }
+                        }
+
+                        div { class: "form-group",
+                            label { class: "form-label", "Concurrency Policy" }
+                            select {
+                                class: "form-input",
+                                value: "{concurrency_policy}",
+                                onchange: move |evt| concurrency_policy.set(evt.value().clone()),
+                                option { value: "Allow", "Allow" }
+                                option { value: "Forbid", "Forbid" }
+                                option { value: "Replace", "Replace" }
+                            }
+                        }
+
+                        div { class: "form-group",
+                            label { class: "form-label", "Starting Deadline (Seconds)" }
+                            input {
+                                class: "form-input",
+                                r#type: "number",
+                                min: "0",
+                                placeholder: "Optional",
+                                value: "{starting_deadline_seconds}",
+                                oninput: move |evt| starting_deadline_seconds.set(evt.value().clone())
                             }
                         }
                     }
@@ -290,7 +374,7 @@ pub fn CreatePod() -> Element {
                                     div { class: "form-group",
                                         input {
                                             class: "form-input",
-                                            placeholder: "nginx",
+                                            placeholder: "backup-job",
                                             value: "{label.value}",
                                             oninput: move |evt| {
                                                 let mut new_labels = labels();
@@ -340,7 +424,7 @@ pub fn CreatePod() -> Element {
                                     div { class: "form-group",
                                         input {
                                             class: "form-input",
-                                            placeholder: "kubernetes.io/description",
+                                            placeholder: "description",
                                             value: "{annotation.key}",
                                             oninput: move |evt| {
                                                 let mut new_annotations = annotations();
@@ -352,7 +436,7 @@ pub fn CreatePod() -> Element {
                                     div { class: "form-group",
                                         input {
                                             class: "form-input",
-                                            placeholder: "My application pod",
+                                            placeholder: "Database backup job",
                                             value: "{annotation.value}",
                                             oninput: move |evt| {
                                                 let mut new_annotations = annotations();
@@ -452,7 +536,7 @@ pub fn CreatePod() -> Element {
                                     div { class: "form-group",
                                         input {
                                             class: "form-input",
-                                            placeholder: "80",
+                                            placeholder: "8080",
                                             value: "{port.container_port}",
                                             oninput: move |evt| {
                                                 let mut new_ports = ports();
@@ -558,12 +642,12 @@ pub fn CreatePod() -> Element {
                 button {
                     class: "create-form-btn create-form-btn-primary",
                     onclick: submit,
-                    "Create Pod"
+                    "Create CronJob"
                 }
                 button {
                     class: "create-form-btn create-form-btn-secondary",
                     onclick: move |_| {
-                        navigate.push("/pods");
+                        navigate.push("/cronjobs");
                     },
                     "Cancel"
                 }
