@@ -8,6 +8,7 @@ use views::{
 };
 
 mod components;
+mod k8s;
 mod views;
 mod utils;
 

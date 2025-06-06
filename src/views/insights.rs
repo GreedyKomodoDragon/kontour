@@ -1,134 +1,23 @@
 use dioxus::{logger::tracing, prelude::*};
 use k8s_openapi::api::core::v1::Pod;
 use kube::{api::ListParams, Api, Client};
+use crate::k8s::{problem_pod::{ProblemPod, check_pod_status}, ClusterStats};
+
+
 const INSIGHTS_CSS: Asset = asset!("/assets/styling/insights.css");
-
-#[derive(Debug)]
-struct ProblemPod {
-    name: String,
-    namespace: String,
-    issue_type: String,
-    details: String,
-    severity: String,
-}
-
-fn check_pod_status(pod: &Pod) -> Option<ProblemPod> {
-    let name = pod.metadata.name.clone()?;
-    let namespace = pod.metadata.namespace.clone()?;
-    let status = pod.status.as_ref()?;
-
-    // Check for CrashLoopBackOff
-    if let Some(container_statuses) = &status.container_statuses {
-        for container in container_statuses {
-            if let Some(waiting) = &container.state.as_ref().and_then(|s| s.waiting.as_ref()) {
-                // Check for CrashLoopBackOff
-                if waiting.reason.as_deref() == Some("CrashLoopBackOff") {
-                    return Some(ProblemPod {
-                        name,
-                        namespace,
-                        issue_type: "CrashLoopBackOff".to_string(),
-                        details: format!(
-                            "Container {} has crashed {} times",
-                            container.name, container.restart_count
-                        ),
-                        severity: "high".to_string(),
-                    });
-                }
-                
-                // Check for image pull issues
-                if matches!(waiting.reason.as_deref(), Some("ImagePullBackOff" | "ErrImagePull")) {
-                    return Some(ProblemPod {
-                        name,
-                        namespace,
-                        issue_type: "Image Pull Error".to_string(),
-                        details: format!(
-                            "Container {} failed to pull image: {}",
-                            container.name,
-                            waiting.message.as_deref().unwrap_or("No details available")
-                        ),
-                        severity: "high".to_string(),
-                    });
-                }
-            }
-
-            // Check for container termination with error
-            if let Some(terminated) = &container.state.as_ref().and_then(|s| s.terminated.as_ref()) {
-                if terminated.exit_code != 0 {
-                    return Some(ProblemPod {
-                        name,
-                        namespace,
-                        issue_type: "Container Failed".to_string(),
-                        details: format!(
-                            "Container {} terminated with exit code {}: {}",
-                            container.name,
-                            terminated.exit_code,
-                            terminated.message.as_deref().unwrap_or("No details available")
-                        ),
-                        severity: "high".to_string(),
-                    });
-                }
-            }
-
-            // Check for container not ready
-            if !container.ready && container.restart_count == 0 {
-                return Some(ProblemPod {
-                    name,
-                    namespace,
-                    issue_type: "Container Not Ready".to_string(),
-                    details: format!(
-                        "Container {} is not ready and has never started successfully",
-                        container.name
-                    ),
-                    severity: "medium".to_string(),
-                });
-            }
-
-            // Check for frequent restarts
-            if container.restart_count > 5 {
-                return Some(ProblemPod {
-                    name,
-                    namespace,
-                    issue_type: "Frequent Restarts".to_string(),
-                    details: format!(
-                        "Container {} has restarted {} times",
-                        container.name, container.restart_count
-                    ),
-                    severity: "medium".to_string(),
-                });
-            }
-        }
-    }
-
-    // Check for Eviction
-    if let Some(reason) = &status.reason {
-        if reason == "Evicted" {
-            let message = status
-                .message
-                .clone()
-                .unwrap_or_else(|| "No details available".to_string());
-            return Some(ProblemPod {
-                name,
-                namespace,
-                issue_type: "Evicted".to_string(),
-                details: message,
-                severity: "high".to_string(),
-            });
-        }
-    }
-
-    None
-}
 
 #[component]
 pub fn Insights() -> Element {
     let client = use_context::<Client>();
     let mut problem_pods = use_signal(Vec::<ProblemPod>::new);
+    let mut cluster_stats = use_signal(ClusterStats::default);
     let mut visible_pods = use_signal(|| 6); // Number of pods to show initially
 
-    // Fetch problem pods
+    // Fetch problem pods and compute stats
     use_effect({
         let client = client.clone();
         let mut problem_pods = problem_pods.clone();
+        let mut cluster_stats = cluster_stats.clone();
 
         move || {
             spawn({
@@ -137,8 +26,11 @@ pub fn Insights() -> Element {
                     let pods: Api<Pod> = Api::all(client);
                     match pods.list(&ListParams::default()).await {
                         Ok(pod_list) => {
+                            let stats = ClusterStats::compute_from_pods(&pod_list.items);
                             let problems: Vec<ProblemPod> =
                                 pod_list.items.iter().filter_map(check_pod_status).collect();
+                            
+                            cluster_stats.set(stats);
                             problem_pods.set(problems);
                         }
                         Err(e) => {
@@ -161,15 +53,15 @@ pub fn Insights() -> Element {
                 div { class: "stats-grid",
                     div { class: "stat-card",
                         span { class: "stat-label", "CrashLoopBackOff Pods" }
-                        span { class: "stat-value", "3" }
+                        span { class: "stat-value", "{cluster_stats.read().crashloop_count}" }
                     }
                     div { class: "stat-card",
                         span { class: "stat-label", "Frequently Restarting Pods" }
-                        span { class: "stat-value", "5" }
+                        span { class: "stat-value", "{cluster_stats.read().restart_count}" }
                     }
                     div { class: "stat-card",
                         span { class: "stat-label", "Recent Evictions" }
-                        span { class: "stat-value", "2" }
+                        span { class: "stat-value", "{cluster_stats.read().evicted_count}" }
                     }
                 }
             }
