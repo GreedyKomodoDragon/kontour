@@ -1,6 +1,6 @@
 use k8s_openapi::api::core::v1::Pod;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ProblemPod {
     pub name: String,
     pub namespace: String,

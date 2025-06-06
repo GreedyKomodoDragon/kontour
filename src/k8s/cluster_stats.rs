@@ -1,6 +1,6 @@
 use k8s_openapi::api::core::v1::Pod;
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct ClusterStats {
     pub crashloop_count: usize,
     pub restart_count: usize,

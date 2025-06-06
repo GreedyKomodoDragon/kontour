@@ -171,3 +171,11 @@
 .show-more-button:hover {
     background-color: #2563eb;
 }
+
+/* Loading Indicator */
+.loading-indicator {
+    text-align: center;
+    padding: 1rem;
+    color: #666;
+    font-style: italic;
+}
