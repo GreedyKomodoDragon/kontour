@@ -1,5 +1,6 @@
-use dioxus::prelude::*;
-
+use dioxus::{logger::tracing, prelude::*};
+use k8s_openapi::api::core::v1::Pod;
+use kube::{api::ListParams, Api, Client};
 const INSIGHTS_CSS: Asset = asset!("/assets/styling/insights.css");
 
 #[derive(Debug)]
@@ -11,31 +12,143 @@ struct ProblemPod {
     severity: String,
 }
 
+fn check_pod_status(pod: &Pod) -> Option<ProblemPod> {
+    let name = pod.metadata.name.clone()?;
+    let namespace = pod.metadata.namespace.clone()?;
+    let status = pod.status.as_ref()?;
+
+    // Check for CrashLoopBackOff
+    if let Some(container_statuses) = &status.container_statuses {
+        for container in container_statuses {
+            if let Some(waiting) = &container.state.as_ref().and_then(|s| s.waiting.as_ref()) {
+                // Check for CrashLoopBackOff
+                if waiting.reason.as_deref() == Some("CrashLoopBackOff") {
+                    return Some(ProblemPod {
+                        name,
+                        namespace,
+                        issue_type: "CrashLoopBackOff".to_string(),
+                        details: format!(
+                            "Container {} has crashed {} times",
+                            container.name, container.restart_count
+                        ),
+                        severity: "high".to_string(),
+                    });
+                }
+                
+                // Check for image pull issues
+                if matches!(waiting.reason.as_deref(), Some("ImagePullBackOff" | "ErrImagePull")) {
+                    return Some(ProblemPod {
+                        name,
+                        namespace,
+                        issue_type: "Image Pull Error".to_string(),
+                        details: format!(
+                            "Container {} failed to pull image: {}",
+                            container.name,
+                            waiting.message.as_deref().unwrap_or("No details available")
+                        ),
+                        severity: "high".to_string(),
+                    });
+                }
+            }
+
+            // Check for container termination with error
+            if let Some(terminated) = &container.state.as_ref().and_then(|s| s.terminated.as_ref()) {
+                if terminated.exit_code != 0 {
+                    return Some(ProblemPod {
+                        name,
+                        namespace,
+                        issue_type: "Container Failed".to_string(),
+                        details: format!(
+                            "Container {} terminated with exit code {}: {}",
+                            container.name,
+                            terminated.exit_code,
+                            terminated.message.as_deref().unwrap_or("No details available")
+                        ),
+                        severity: "high".to_string(),
+                    });
+                }
+            }
+
+            // Check for container not ready
+            if !container.ready && container.restart_count == 0 {
+                return Some(ProblemPod {
+                    name,
+                    namespace,
+                    issue_type: "Container Not Ready".to_string(),
+                    details: format!(
+                        "Container {} is not ready and has never started successfully",
+                        container.name
+                    ),
+                    severity: "medium".to_string(),
+                });
+            }
+
+            // Check for frequent restarts
+            if container.restart_count > 5 {
+                return Some(ProblemPod {
+                    name,
+                    namespace,
+                    issue_type: "Frequent Restarts".to_string(),
+                    details: format!(
+                        "Container {} has restarted {} times",
+                        container.name, container.restart_count
+                    ),
+                    severity: "medium".to_string(),
+                });
+            }
+        }
+    }
+
+    // Check for Eviction
+    if let Some(reason) = &status.reason {
+        if reason == "Evicted" {
+            let message = status
+                .message
+                .clone()
+                .unwrap_or_else(|| "No details available".to_string());
+            return Some(ProblemPod {
+                name,
+                namespace,
+                issue_type: "Evicted".to_string(),
+                details: message,
+                severity: "high".to_string(),
+            });
+        }
+    }
+
+    None
+}
+
 #[component]
 pub fn Insights() -> Element {
-    let problem_pods = vec![
-        ProblemPod {
-            name: "frontend-6d4b87bf5-x8j9k".to_string(),
-            namespace: "default".to_string(),
-            issue_type: "CrashLoopBackOff".to_string(),
-            details: "Container exited 12 times in the last hour".to_string(),
-            severity: "high".to_string(),
-        },
-        ProblemPod {
-            name: "redis-cache-5d7b98cf67-p2m3n".to_string(),
-            namespace: "backend".to_string(),
-            issue_type: "Frequent Restarts".to_string(),
-            details: "Pod restarted 8 times in the last 24 hours".to_string(),
-            severity: "medium".to_string(),
-        },
-        ProblemPod {
-            name: "elasticsearch-0".to_string(),
-            namespace: "logging".to_string(),
-            issue_type: "Evicted".to_string(),
-            details: "Pod evicted due to node memory pressure".to_string(),
-            severity: "high".to_string(),
-        },
-    ];
+    let client = use_context::<Client>();
+    let mut problem_pods = use_signal(Vec::<ProblemPod>::new);
+    let mut visible_pods = use_signal(|| 6); // Number of pods to show initially
+
+    // Fetch problem pods
+    use_effect({
+        let client = client.clone();
+        let mut problem_pods = problem_pods.clone();
+
+        move || {
+            spawn({
+                let client = client.clone();
+                async move {
+                    let pods: Api<Pod> = Api::all(client);
+                    match pods.list(&ListParams::default()).await {
+                        Ok(pod_list) => {
+                            let problems: Vec<ProblemPod> =
+                                pod_list.items.iter().filter_map(check_pod_status).collect();
+                            problem_pods.set(problems);
+                        }
+                        Err(e) => {
+                            tracing::error!("Failed to fetch pods: {}", e);
+                        }
+                    }
+                }
+            });
+        }
+    });
 
     rsx! {
         document::Link { rel: "stylesheet", href: INSIGHTS_CSS }
@@ -65,18 +178,41 @@ pub fn Insights() -> Element {
             div { class: "insights-section",
                 h2 { "Problem Pods" }
                 div { class: "problem-pods-grid",
-                    {problem_pods.iter().map(|pod| rsx! {
-                        div { class: format_args!("problem-pod-card severity-{}", pod.severity),
-                            div { class: "problem-pod-header",
-                                h3 { "{pod.name}" }
-                                span { class: "pod-namespace", "{pod.namespace}" }
+                    {problem_pods.iter()
+                        .take(visible_pods())
+                        .map(|pod| rsx! {
+                            div { class: format_args!("problem-pod-card severity-{}", pod.severity),
+                                div { class: "problem-pod-header",
+                                    h3 { "{pod.name}" }
+                                    span { class: "pod-namespace", "{pod.namespace}" }
+                                }
+                                div { class: "problem-pod-content",
+                                    div { class: "issue-type", "{pod.issue_type}" }
+                                    p { class: "issue-details", "{pod.details}" }
+                                }
                             }
-                            div { class: "problem-pod-content",
-                                div { class: "issue-type", "{pod.issue_type}" }
-                                p { class: "issue-details", "{pod.details}" }
+                        })
+                    }
+                }
+                
+                // Show more button if there are more pods to show
+                {
+                    let total = problem_pods.len();
+                    let current = visible_pods();
+                    if total > current {
+                        let remaining = total - current;
+                        rsx! {
+                            button {
+                                class: "show-more-button",
+                                onclick: move |_| {
+                                    visible_pods += 6;
+                                },
+                                "Show More ({remaining} remaining)"
                             }
                         }
-                    })}
+                    } else {
+                        rsx!("")
+                    }
                 }
             }
 
