@@ -1,9 +1,10 @@
 use crate::k8s::{
+    find_unused_configmaps,
     problem_pod::{check_pod_status, ProblemPod},
     ClusterStats,
 };
 use dioxus::{logger::tracing, prelude::*};
-use k8s_openapi::api::core::v1::Pod;
+use k8s_openapi::api::core::v1::{ConfigMap, Pod};
 use kube::{api::ListParams, Api, Client};
 
 const INSIGHTS_CSS: Asset = asset!("/assets/styling/insights.css");
@@ -15,8 +16,26 @@ pub fn Insights() -> Element {
     let mut cluster_stats = use_signal(ClusterStats::default);
     let mut visible_pods = use_signal(|| 6); // Number of pods to show initially
     let mut is_loading_more = use_signal(|| false);
+    let mut unused_configmaps = use_signal(Vec::<(ConfigMap, String)>::new);
 
     // Fetch problem pods and compute stats
+    // Effect to find unused ConfigMaps
+    use_effect({
+        let client = client.clone();
+        let mut unused_configmaps = unused_configmaps.clone();
+
+        move || {
+            spawn({
+                let client = client.clone();
+                async move {
+                    let unused = find_unused_configmaps(client).await;
+                    unused_configmaps.set(unused);
+                }
+            });
+        }
+    });
+
+    // Effect to fetch problem pods and compute stats
     use_effect({
         let client = client.clone();
         let mut problem_pods = problem_pods.clone();
@@ -147,7 +166,6 @@ pub fn Insights() -> Element {
                     show_more()
                 }
             }
-            }
         }
 
         // Resource Hotspots
@@ -239,47 +257,24 @@ pub fn Insights() -> Element {
         div { class: "insights-section",
             h2 { "Unused Resources" }
             div { class: "problem-pods-grid",
-                div { class: "problem-pod-card severity-low",
-                    div { class: "problem-pod-header",
-                        h3 { "mysql-config" }
-                        span { class: "pod-namespace", "database" }
+                {unused_configmaps.read().iter().map(|(cm, reason)| {
+                    let name = cm.metadata.name.clone().unwrap_or_default();
+                    let namespace = cm.metadata.namespace.clone().unwrap_or_default();
+                    rsx! {
+                        div { class: "problem-pod-card severity-low",
+                            div { class: "problem-pod-header",
+                                h3 { "{name}" }
+                                span { class: "pod-namespace", "{namespace}" }
+                            }
+                            div { class: "problem-pod-content",
+                                div { class: "issue-type", "Unused ConfigMap" }
+                                p { class: "issue-details", "{reason}" }
+                            }
+                        }
                     }
-                    div { class: "problem-pod-content",
-                        div { class: "issue-type", "Unused ConfigMap" }
-                        p { class: "issue-details", "ConfigMap is not mounted by any pods or referenced by any deployments" }
-                    }
-                }
-                div { class: "problem-pod-card severity-low",
-                    div { class: "problem-pod-header",
-                        h3 { "data-backup-pvc" }
-                        span { class: "pod-namespace", "backup" }
-                    }
-                    div { class: "problem-pod-content",
-                        div { class: "issue-type", "Abandoned PVC" }
-                        p { class: "issue-details", "PersistentVolumeClaim has not been mounted by any pods for 30 days" }
-                    }
-                }
-                div { class: "problem-pod-card severity-medium",
-                    div { class: "problem-pod-header",
-                        h3 { "api-credentials" }
-                        span { class: "pod-namespace", "default" }
-                    }
-                    div { class: "problem-pod-content",
-                        div { class: "issue-type", "Unused Secret" }
-                        p { class: "issue-details", "Secret contains sensitive data but is not referenced by any resources" }
-                    }
-                }
-                div { class: "problem-pod-card severity-low",
-                    div { class: "problem-pod-header",
-                        h3 { "legacy-service" }
-                        span { class: "pod-namespace", "default" }
-                    }
-                    div { class: "problem-pod-content",
-                        div { class: "issue-type", "Unused Service" }
-                        p { class: "issue-details", "Service does not match any pods and has had no traffic for 60 days" }
-                    }
-                }
+                })}
             }
         }
+    }
     }
 }
