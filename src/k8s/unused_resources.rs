@@ -1,60 +1,55 @@
-use k8s_openapi::api::core::v1::{ConfigMap, Pod};
+use k8s_openapi::api::core::v1::{ConfigMap, PersistentVolumeClaim, Pod};
 use kube::{api::ListParams, Api, Client};
 
-/// Check if a configmap is referenced by a pod's volumes or environment variables
-pub fn is_configmap_used_by_pod(
-    configmap_name: String,
-    configmap_namespace: String,
-    pod: &Pod,
-) -> bool {
-    let pod_namespace = pod
-        .metadata
-        .namespace
-        .as_ref()
-        .map(String::as_str)
-        .unwrap_or_default();
+/// Find unused ConfigMaps in the cluster
+pub async fn find_unused_configmaps(client: Client) -> Vec<(ConfigMap, String)> {
+    let pods: Api<Pod> = Api::all(client.clone());
+    let configmaps: Api<ConfigMap> = Api::all(client);
+    let mut unused_configmaps = Vec::new();
 
-    // Only check pods in the same namespace as the configmap
-    if pod_namespace != configmap_namespace {
-        return false;
-    }
-
-    let pod_spec = match &pod.spec {
-        Some(spec) => spec,
-        None => return false,
+    // Get all pods first
+    let pod_list = match pods.list(&ListParams::default()).await {
+        Ok(list) => list.items,
+        Err(_) => return Vec::new(),
     };
 
-    // Check volumes
-    if let Some(volumes) = &pod_spec.volumes {
-        for volume in volumes {
-            if let Some(config_map) = &volume.config_map {
-                if config_map.name == configmap_name {
-                    return true;
-                }
-            }
-        }
-    }
+    // Build a set of used ConfigMaps for efficient lookup
+    let mut used_configmaps = std::collections::HashSet::new();
+    for pod in &pod_list {
+        let pod_namespace = pod.metadata.namespace.as_deref().unwrap_or_default();
 
-    // Check containers for environment variables
-    for container in &pod_spec.containers {
-        // Check envFrom
-        if let Some(env_from) = &container.env_from {
-            for env_source in env_from {
-                if let Some(config_map) = &env_source.config_map_ref {
-                    if config_map.name == configmap_name {
-                        return true;
+        if let Some(spec) = &pod.spec {
+            // Check volumes
+            if let Some(volumes) = &spec.volumes {
+                for volume in volumes {
+                    if let Some(config_map) = &volume.config_map {
+                        used_configmaps.insert(format!("{}:{}", pod_namespace, config_map.name));
                     }
                 }
             }
-        }
 
-        // Check individual env vars
-        if let Some(env) = &container.env {
-            for env_var in env {
-                if let Some(value_from) = &env_var.value_from {
-                    if let Some(config_map_key) = &value_from.config_map_key_ref {
-                        if config_map_key.name == configmap_name {
-                            return true;
+            // Check containers
+            for container in &spec.containers {
+                // Check envFrom
+                if let Some(env_from) = &container.env_from {
+                    for env_source in env_from {
+                        if let Some(config_map_ref) = &env_source.config_map_ref {
+                            used_configmaps
+                                .insert(format!("{}:{}", pod_namespace, config_map_ref.name));
+                        }
+                    }
+                }
+
+                // Check individual env vars
+                if let Some(env) = &container.env {
+                    for env_var in env {
+                        if let Some(value_from) = &env_var.value_from {
+                            if let Some(config_map_key_ref) = &value_from.config_map_key_ref {
+                                used_configmaps.insert(format!(
+                                    "{}:{}",
+                                    pod_namespace, config_map_key_ref.name
+                                ));
+                            }
                         }
                     }
                 }
@@ -62,59 +57,85 @@ pub fn is_configmap_used_by_pod(
         }
     }
 
-    false
-}
+    // Get and check all configmaps
+    if let Ok(configmap_list) = configmaps.list(&ListParams::default()).await {
+        for configmap in configmap_list.items {
+            let name = configmap.metadata.name.clone().unwrap_or_default();
+            let namespace = configmap.metadata.namespace.clone().unwrap_or_default();
 
-/// Find unused ConfigMaps in the cluster
-pub async fn find_unused_configmaps(client: Client) -> Vec<(ConfigMap, String)> {
-    let pods: Api<Pod> = Api::all(client.clone());
-    let configmaps: Api<ConfigMap> = Api::all(client);
+            // Skip kube-root-ca.crt and system namespaces
+            if name == "kube-root-ca.crt"
+                || namespace == "kube-system"
+                || namespace == "kube-public"
+            {
+                continue;
+            }
 
-    let mut unused_configmaps = Vec::new();
-
-    // Get all pods first
-    let pod_list = match pods.list(&ListParams::default()).await {
-        Ok(list) => list.items,
-        Err(e) => {
-            return Vec::new();
-        }
-    };
-
-    // Get all configmaps
-    match configmaps.list(&ListParams::default()).await {
-        Ok(configmap_list) => {
-            for configmap in configmap_list.items {
-                // skip kube-root-ca.crt 
-                if configmap.metadata.name.as_deref() == Some("kube-root-ca.crt") {
-                    continue;
-                }
-
-                let name = configmap.metadata.name.clone().unwrap_or_default();
-                let namespace = configmap.metadata.namespace.clone().unwrap_or_default();
-
-                // Skip system configmaps
-                if namespace == "kube-system" || namespace == "kube-public" {
-                    continue;
-                }
-
-                // Check if the configmap is used by any pod
-                let is_used = pod_list
-                    .iter()
-                    .any(|pod| is_configmap_used_by_pod(name.clone(), namespace.clone(), pod));
-
-                if !is_used {
-                    unused_configmaps.push((
-                        configmap,
-                        format!(
-                            "ConfigMap '{}' in namespace '{}' is not mounted by any pods",
-                            name, namespace
-                        ),
-                    ));
-                }
+            let key = format!("{}:{}", namespace, name);
+            if !used_configmaps.contains(&key) {
+                unused_configmaps.push((
+                    configmap,
+                    format!(
+                        "ConfigMap '{}' in namespace '{}' is not mounted by any pods",
+                        name, namespace
+                    ),
+                ));
             }
         }
-        Err(_e) => {}
     }
 
     unused_configmaps
+}
+
+/// Find unused PersistentVolumeClaims (PVCs) in the cluster
+pub async fn find_unused_pvcs(client: Client) -> Vec<(PersistentVolumeClaim, String)> {
+    let pvcs: Api<PersistentVolumeClaim> = Api::all(client.clone());
+    let pods: Api<Pod> = Api::all(client);
+    let mut unused_pvcs = Vec::new();
+
+    // Get all resources
+    let pvc_list = match pvcs.list(&ListParams::default()).await {
+        Ok(list) => list.items,
+        Err(_) => return Vec::new(),
+    };
+
+    let pod_list = match pods.list(&ListParams::default()).await {
+        Ok(list) => list.items,
+        Err(_) => return Vec::new(),
+    };
+
+    // Build a set of used PVCs for efficient lookup
+    let mut used_pvcs = std::collections::HashSet::new();
+    for pod in &pod_list {
+        if let Some(spec) = &pod.spec {
+            if let Some(volumes) = &spec.volumes {
+                for volume in volumes {
+                    if let Some(pvc_source) = &volume.persistent_volume_claim {
+                        if let Some(namespace) = &pod.metadata.namespace {
+                            // Store namespace:name as the key
+                            used_pvcs.insert(format!("{}:{}", namespace, &pvc_source.claim_name));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Check each PVC against the set of used PVCs
+    for pvc in pvc_list {
+        let pvc_name = pvc.metadata.name.clone().unwrap_or_default();
+        let pvc_namespace = pvc.metadata.namespace.clone().unwrap_or_default();
+        let key = format!("{}:{}", pvc_namespace, pvc_name);
+
+        // If PVC is not in the used set, it's unused
+        if !used_pvcs.contains(&key) {
+            let reason = format!(
+                "PVC '{}' in namespace '{}' is not used by any pod",
+                pvc_name, pvc_namespace
+            );
+            unused_pvcs.push((pvc, reason));
+        }
+    }
+
+    unused_pvcs
 }

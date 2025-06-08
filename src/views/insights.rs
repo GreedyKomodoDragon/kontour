@@ -1,10 +1,12 @@
 use crate::k8s::{
-    find_unused_configmaps,
+    find_unused_configmaps, find_unused_pvcs,
     problem_pod::{check_pod_status, ProblemPod},
     ClusterStats,
 };
 use dioxus::{logger::tracing, prelude::*};
-use k8s_openapi::api::core::v1::{ConfigMap, Pod};
+use k8s_openapi::api::{
+    core::v1::{ConfigMap, PersistentVolumeClaim, Pod},
+};
 use kube::{api::ListParams, Api, Client};
 
 const INSIGHTS_CSS: Asset = asset!("/assets/styling/insights.css");
@@ -12,24 +14,30 @@ const INSIGHTS_CSS: Asset = asset!("/assets/styling/insights.css");
 #[component]
 pub fn Insights() -> Element {
     let client = use_context::<Client>();
-    let mut problem_pods = use_signal(Vec::<ProblemPod>::new);
-    let mut cluster_stats = use_signal(ClusterStats::default);
+    let problem_pods = use_signal(Vec::<ProblemPod>::new);
+    let cluster_stats = use_signal(ClusterStats::default);
     let mut visible_pods = use_signal(|| 6); // Number of pods to show initially
-    let mut is_loading_more = use_signal(|| false);
-    let mut unused_configmaps = use_signal(Vec::<(ConfigMap, String)>::new);
+    let mut visible_resources = use_signal(|| 6); // Number of unused resources to show initially
+    let is_loading_more = use_signal(|| false);
+    let unused_configmaps = use_signal(Vec::<(ConfigMap, String)>::new);
+    let unused_pvcs = use_signal(Vec::<(PersistentVolumeClaim, String)>::new);
 
     // Fetch problem pods and compute stats
     // Effect to find unused ConfigMaps
     use_effect({
         let client = client.clone();
         let mut unused_configmaps = unused_configmaps.clone();
-
+        let mut unused_pvcs = unused_pvcs.clone();
+        
         move || {
             spawn({
                 let client = client.clone();
                 async move {
-                    let unused = find_unused_configmaps(client).await;
-                    unused_configmaps.set(unused);
+                    let unused_cm = find_unused_configmaps(client.clone()).await;
+                    unused_configmaps.set(unused_cm);
+
+                    let unused_pvc = find_unused_pvcs(client).await;
+                    unused_pvcs.set(unused_pvc);
                 }
             });
         }
@@ -257,22 +265,63 @@ pub fn Insights() -> Element {
         div { class: "insights-section",
             h2 { "Unused Resources" }
             div { class: "problem-pods-grid",
-                {unused_configmaps.read().iter().map(|(cm, reason)| {
-                    let name = cm.metadata.name.clone().unwrap_or_default();
-                    let namespace = cm.metadata.namespace.clone().unwrap_or_default();
-                    rsx! {
-                        div { class: "problem-pod-card severity-low",
-                            div { class: "problem-pod-header",
-                                h3 { "{name}" }
-                                span { class: "pod-namespace", "{namespace}" }
+                // Create a combined iterator of configmaps and pvcs for pagination
+                {
+                    unused_configmaps.read()
+                        .iter()
+                        .map(|(cm, reason)| {
+                            let name = cm.metadata.name.clone().unwrap_or_default();
+                            let namespace = cm.metadata.namespace.clone().unwrap_or_default();
+                            (name, namespace, "ConfigMap", reason)
+                        })
+                        .chain(
+                            unused_pvcs.read()
+                                .iter()
+                                .map(|(pvc, reason)| {
+                                    let name = pvc.metadata.name.clone().unwrap_or_default();
+                                    let namespace = pvc.metadata.namespace.clone().unwrap_or_default();
+                                    (name, namespace, "PersistentVolumeClaim", reason)
+                                })
+                        )
+                        .take(*visible_resources.read())
+                        .map(|(name, namespace, resource_type, reason)| {
+                            rsx! {
+                                div { class: "problem-pod-card severity-low",
+                                    div { class: "problem-pod-header",
+                                        h3 { "{name}" }
+                                        span { class: "pod-namespace", "{namespace}" }
+                                    }
+                                    div { class: "problem-pod-content",
+                                        div { class: "issue-type", "Unused {resource_type}" }
+                                        p { class: "issue-details", "{reason}" }
+                                    }
+                                }
                             }
-                            div { class: "problem-pod-content",
-                                div { class: "issue-type", "Unused ConfigMap" }
-                                p { class: "issue-details", "{reason}" }
+                        })
+                }
+            }
+
+            // Show more button for unused resources
+            div {
+                class: "show-more-container",
+                {
+                    let total_resources = unused_configmaps.read().len() + unused_pvcs.read().len();
+                    if total_resources > *visible_resources.read() {
+                        let remaining = total_resources - *visible_resources.read();
+                        rsx! {
+                            button {
+                                class: "show-more-button",
+                                onclick: move |_| {
+                                    let current = *visible_resources.read();
+                                    visible_resources.set(current + 6);
+                                },
+                                "Show More ({remaining} remaining)"
                             }
                         }
+                    } else {
+                        rsx! { }
                     }
-                })}
+                }
             }
         }
     }
