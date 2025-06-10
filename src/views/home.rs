@@ -1,10 +1,31 @@
+use crate::k8s::get_recent_events;
 use dioxus::prelude::*;
+use k8s_openapi::api::core::v1::Event;
+use kube::Client;
 
 const OVERVIEW_CSS: Asset = asset!("/assets/styling/overview.css");
 
 /// The Home page component that renders the Kubernetes dashboard overview
 #[component]
 pub fn Home() -> Element {
+    let client = use_context::<Client>();
+    let events = use_signal(Vec::<Event>::new);
+    
+    // Fetch recent events
+    use_effect({
+        let client = client.clone();
+        let mut events = events.clone();
+        
+        move || {
+            spawn({
+                let client = client.clone();
+                async move {
+                    let recent_events = get_recent_events(client).await;
+                    events.set(recent_events);
+                }
+            });
+        }
+    });
     rsx! {
         document::Link { rel: "stylesheet", href: OVERVIEW_CSS }
         
@@ -90,43 +111,42 @@ pub fn Home() -> Element {
             }
 
             // Recent Events Section
-            div { class: "resource-section",
+            div { class: "events-section",
                 h2 { "Recent Events" }
-                table { class: "events-table",
-                    thead {
-                        tr {
-                            th { "Time" }
-                            th { "Type" }
-                            th { "Resource" }
-                            th { "Message" }
+                div { class: "events-list",
+                    {events.read().iter().map(|event| {
+                        let reason = event.reason.as_deref().unwrap_or("Unknown");
+                        let message = event.message.as_deref().unwrap_or("No message");
+                        let namespace = event.metadata.namespace.as_deref().unwrap_or("default");
+                        let involved_object = &event.involved_object;
+                        let kind = involved_object.kind.as_deref().unwrap_or("unknown");
+                        let name = involved_object.name.as_deref().unwrap_or("unknown");
+                        let time = event.last_timestamp
+                            .as_ref()
+                            .or(event.first_timestamp.as_ref())
+                            .map(|t| t.0.to_string())
+                            .unwrap_or_else(|| "Unknown time".to_string());
+
+                        let severity = event.type_.as_deref().unwrap_or("Normal");
+                        let severity_class = match severity {
+                            "Warning" => "event-warning",
+                            "Normal" => "event-normal",
+                            _ => "event-normal"
+                        };
+
+                        rsx! {
+                            div { 
+                                class: format!("event-card {}", severity_class),
+                                div { class: "event-line",
+                                    span { class: "event-reason", "{reason}" }
+                                    span { class: "event-object", "{kind}/{name}" }
+                                    span { class: "event-namespace", "{namespace}" }
+                                    span { class: "event-time", "{time}" }
+                                }
+                                p { class: "event-message", "{message}" }
+                            }
                         }
-                    }
-                    tbody {
-                        tr {
-                            td { "2m ago" }
-                            td { class: "status-healthy", "Normal" }
-                            td { "Pod/nginx-deployment-123" }
-                            td { "Successfully pulled image" }
-                        }
-                        tr {
-                            td { "5m ago" }
-                            td { class: "status-warning", "Warning" }
-                            td { "Node/worker-1" }
-                            td { "High CPU usage detected" }
-                        }
-                        tr {
-                            td { "10m ago" }
-                            td { class: "status-healthy", "Normal" }
-                            td { "Deployment/web-app" }
-                            td { "Scaled replicas to 3" }
-                        }
-                        tr {
-                            td { "15m ago" }
-                            td { class: "status-error", "Error" }
-                            td { "PersistentVolume/data-01" }
-                            td { "Volume mount failed" }
-                        }
-                    }
+                    })}
                 }
             }
         }
