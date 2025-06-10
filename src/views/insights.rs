@@ -1,6 +1,8 @@
 use crate::k8s::{
     find_unused_configmaps, find_unused_pvcs,
     problem_pod::{check_pod_status, ProblemPod},
+    resource_limits::PodResourceIssue,
+    find_pods_without_limits,
     ClusterStats,
 };
 use dioxus::{logger::tracing, prelude::*};
@@ -18,9 +20,11 @@ pub fn Insights() -> Element {
     let cluster_stats = use_signal(ClusterStats::default);
     let mut visible_pods = use_signal(|| 6); // Number of pods to show initially
     let mut visible_resources = use_signal(|| 6); // Number of unused resources to show initially
+    let mut visible_limit_issues = use_signal(|| 6); // Number of resource limit issues to show
     let is_loading_more = use_signal(|| false);
     let unused_configmaps = use_signal(Vec::<(ConfigMap, String)>::new);
     let unused_pvcs = use_signal(Vec::<(PersistentVolumeClaim, String)>::new);
+    let pods_without_limits = use_signal(Vec::<PodResourceIssue>::new);
 
     // Fetch problem pods and compute stats
     // Effect to find unused ConfigMaps
@@ -93,6 +97,22 @@ pub fn Insights() -> Element {
                             }
                         }
                     }
+                }
+            });
+        }
+    });
+
+    // Effect to find pods without resource limits
+    use_effect({
+        let client = client.clone();
+        let mut pods_without_limits = pods_without_limits.clone();
+        
+        move || {
+            spawn({
+                let client = client.clone();
+                async move {
+                    let issues = find_pods_without_limits(client).await;
+                    pods_without_limits.set(issues);
                 }
             });
         }
@@ -201,24 +221,42 @@ pub fn Insights() -> Element {
         div { class: "insights-section",
             h2 { "Pods Without Resource Limits" }
             div { class: "problem-pods-grid",
-                div { class: "problem-pod-card severity-low",
-                    div { class: "problem-pod-header",
-                        h3 { "nginx-proxy-65df748474-abc12" }
-                        span { class: "pod-namespace", "default" }
-                    }
-                    div { class: "problem-pod-content",
-                        div { class: "issue-type", "No Resource Limits" }
-                        p { class: "issue-details", "Pod is running without CPU or memory limits, which could lead to resource contention" }
-                    }
+                {pods_without_limits.read()
+                    .iter()
+                    .take(*visible_limit_issues.read())
+                    .map(|issue| rsx! {
+                        div { class: "problem-pod-card severity-low",
+                            div { class: "problem-pod-header",
+                                h3 { "{issue.name}" }
+                                span { class: "pod-namespace", "{issue.namespace}" }
+                            }
+                            div { class: "problem-pod-content",
+                                div { class: "issue-type", "{issue.issue_type}" }
+                                p { class: "issue-details", "{issue.details}" }
+                            }
+                        }
+                    })
                 }
-                div { class: "problem-pod-card severity-low",
-                    div { class: "problem-pod-header",
-                        h3 { "metrics-collector-7d9b4f556-xyz89" }
-                        span { class: "pod-namespace", "monitoring" }
-                    }
-                    div { class: "problem-pod-content",
-                        div { class: "issue-type", "Partial Resource Limits" }
-                        p { class: "issue-details", "Pod has memory limits but no CPU limits defined" }
+            }
+
+            div {
+                class: "show-more-container",
+                {
+                    let total_issues = pods_without_limits.read().len();
+                    if total_issues > *visible_limit_issues.read() {
+                        let remaining = total_issues - *visible_limit_issues.read();
+                        rsx! {
+                            button {
+                                class: "show-more-button",
+                                onclick: move |_| {
+                                    let current = *visible_limit_issues.read();
+                                    visible_limit_issues.set(current + 6);
+                                },
+                                "Show More ({remaining} remaining)"
+                            }
+                        }
+                    } else {
+                        rsx! { }
                     }
                 }
             }

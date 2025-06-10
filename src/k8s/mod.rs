@@ -1,6 +1,8 @@
+pub mod cluster_stats;
 pub mod problem_pod;
-mod cluster_stats;
-mod unused_resources;
+pub mod resource_limits;
+pub mod unused_resources;
 
-pub use cluster_stats::ClusterStats;
-pub use unused_resources::{find_unused_configmaps, find_unused_pvcs};
+pub use cluster_stats::*;
+pub use resource_limits::*;
+pub use unused_resources::*;
