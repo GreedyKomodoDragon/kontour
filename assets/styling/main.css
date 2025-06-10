@@ -634,3 +634,9 @@ html, body {
     color: rgba(255, 255, 255, 0.5);
     font-size: 11px;
 }
+
+
+.status-warning {
+    background: rgba(250, 204, 21, 0.2);
+    color: #facc15;
+}

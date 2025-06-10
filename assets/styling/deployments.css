@@ -92,12 +92,6 @@
     color: #facc15; /* Match pods */
 }
 
-.status-warning {
-    /* Use pending style or define a specific one */
-    background: rgba(250, 204, 21, 0.2);
-    color: #facc15;
-}
-
 .status-failed {
     background: rgba(239, 68, 68, 0.2); /* Match pods */
     color: #ef4444; /* Match pods */

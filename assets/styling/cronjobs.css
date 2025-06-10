@@ -200,11 +200,6 @@
     color: rgb(239, 68, 68);
 }
 
-.status-warning {
-    background: rgba(234, 179, 8, 0.2);
-    color: rgb(234, 179, 8);
-}
-
 /* Containers section */
 .containers-section {
     margin-bottom: 24px;
