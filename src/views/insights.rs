@@ -4,7 +4,7 @@ use crate::k8s::{
     resource_limits::PodResourceIssue,
     resource_metrics::ResourceHotspot,
     find_pods_without_limits, find_resource_hotspots,
-    ClusterStats,
+    ClusterStats
 };
 use dioxus::{logger::tracing, prelude::*};
 use k8s_openapi::api::{
@@ -306,43 +306,6 @@ pub fn Insights() -> Element {
                         }
                     } else {
                         rsx! { }
-                    }
-                }
-            }
-        }
-
-        // Deprecated API Usage
-        div { class: "insights-section",
-            h2 { "Deprecated API Usage" }
-            div { class: "problem-pods-grid",
-                div { class: "problem-pod-card severity-medium",
-                    div { class: "problem-pod-header",
-                        h3 { "my-ingress" }
-                        span { class: "pod-namespace", "default" }
-                    }
-                    div { class: "problem-pod-content",
-                        div { class: "issue-type", "Deprecated Ingress API Version" }
-                        p { class: "issue-details", "Using networking.k8s.io/v1beta1, migrate to networking.k8s.io/v1 before Kubernetes 1.22" }
-                    }
-                }
-                div { class: "problem-pod-card severity-medium",
-                    div { class: "problem-pod-header",
-                        h3 { "restrict-root" }
-                        span { class: "pod-namespace", "kube-system" }
-                    }
-                    div { class: "problem-pod-content",
-                        div { class: "issue-type", "PodSecurityPolicy Deprecation" }
-                        p { class: "issue-details", "PodSecurityPolicy API will be removed in Kubernetes 1.25. Migrate to Pod Security Standards" }
-                    }
-                }
-                div { class: "problem-pod-card severity-low",
-                    div { class: "problem-pod-header",
-                        h3 { "my-cronjob" }
-                        span { class: "pod-namespace", "batch" }
-                    }
-                    div { class: "problem-pod-content",
-                        div { class: "issue-type", "Deprecated CronJob API Version" }
-                        p { class: "issue-details", "Using batch/v1beta1, migrate to batch/v1 for better compatibility" }
                     }
                 }
             }
