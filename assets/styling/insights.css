@@ -135,6 +135,14 @@
     margin: 0 0 12px 0;
 }
 
+.hotspot-card.high-usage {
+    border-left: 4px solid #ef4444;
+}
+
+.hotspot-card.low-usage {
+    border-left: 4px solid #3b82f6;
+}
+
 .hotspot-content {
     display: flex;
     justify-content: space-between;
@@ -151,6 +159,14 @@
     color: #ef4444;
     font-size: 14px;
     font-weight: 500;
+}
+
+.usage-value.high {
+    color: #ef4444;
+}
+
+.usage-value.low {
+    color: #3b82f6;
 }
 
 /* Show More Button */

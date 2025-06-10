@@ -2,7 +2,8 @@ use crate::k8s::{
     find_unused_configmaps, find_unused_pvcs,
     problem_pod::{check_pod_status, ProblemPod},
     resource_limits::PodResourceIssue,
-    find_pods_without_limits,
+    resource_metrics::ResourceHotspot,
+    find_pods_without_limits, find_resource_hotspots,
     ClusterStats,
 };
 use dioxus::{logger::tracing, prelude::*};
@@ -21,10 +22,12 @@ pub fn Insights() -> Element {
     let mut visible_pods = use_signal(|| 6); // Number of pods to show initially
     let mut visible_resources = use_signal(|| 6); // Number of unused resources to show initially
     let mut visible_limit_issues = use_signal(|| 6); // Number of resource limit issues to show
+    let mut visible_hotspots = use_signal(|| 6); // Number of hotspots to show initially
     let is_loading_more = use_signal(|| false);
     let unused_configmaps = use_signal(Vec::<(ConfigMap, String)>::new);
     let unused_pvcs = use_signal(Vec::<(PersistentVolumeClaim, String)>::new);
     let pods_without_limits = use_signal(Vec::<PodResourceIssue>::new);
+    let resource_hotspots = use_signal(Vec::<ResourceHotspot>::new);
 
     // Fetch problem pods and compute stats
     // Effect to find unused ConfigMaps
@@ -118,6 +121,22 @@ pub fn Insights() -> Element {
         }
     });
 
+    // Effect to find resource hotspots
+    use_effect({
+        let client = client.clone();
+        let mut resource_hotspots = resource_hotspots.clone();
+        
+        move || {
+            spawn({
+                let client = client.clone();
+                async move {
+                    let hotspots = find_resource_hotspots(client).await;
+                    resource_hotspots.set(hotspots);
+                }
+            });
+        }
+    });
+
     rsx! {
     document::Link { rel: "stylesheet", href: INSIGHTS_CSS }
     div { class: "insights-container",
@@ -198,20 +217,50 @@ pub fn Insights() -> Element {
 
         // Resource Hotspots
         div { class: "insights-section",
-            h2 { "Resource Hotspots" }
+            h2 { "Resource Hot & Cold spots" }
             div { class: "resource-hotspots-grid",
-                div { class: "hotspot-card",
-                    h3 { "High CPU Usage" }
-                    div { class: "hotspot-content",
-                        p { "web-backend-754fd78c4b-2nlpx" }
-                        span { class: "usage-value", "95%" }
-                    }
+                {resource_hotspots.read()
+                    .iter()
+                    .take(*visible_hotspots.read())
+                    .map(|hotspot| rsx! {
+                        div { 
+                            class: format!("hotspot-card {}", if hotspot.severity == "high" { "high-usage" } else { "low-usage" }),
+                            h3 { "{hotspot.hotspot_type}" }
+                            div { class: "hotspot-content",
+                                p { "{hotspot.name}" }
+                                span { class: "pod-namespace", "{hotspot.namespace}" }
+                                span { 
+                                    class: format!("usage-value {}", if hotspot.severity == "high" { "high" } else { "low" }), 
+                                    if hotspot.hotspot_type.contains("CPU") {
+                                        "{hotspot.cpu_usage:.1}%"
+                                    } else {
+                                        "{hotspot.memory_usage:.1}%"
+                                    }
+                                }
+                            }
+                        }
+                    })
                 }
-                div { class: "hotspot-card",
-                    h3 { "High Memory Usage" }
-                    div { class: "hotspot-content",
-                        p { "kafka-0" }
-                        span { class: "usage-value", "87%" }
+            }
+
+            div {
+                class: "show-more-container",
+                {
+                    let total_hotspots = resource_hotspots.read().len();
+                    if total_hotspots > *visible_hotspots.read() {
+                        let remaining = total_hotspots - *visible_hotspots.read();
+                        rsx! {
+                            button {
+                                class: "show-more-button",
+                                onclick: move |_| {
+                                    let current = *visible_hotspots.read();
+                                    visible_hotspots.set(current + 6);
+                                },
+                                "Show More ({remaining} remaining)"
+                            }
+                        }
+                    } else {
+                        rsx! { }
                     }
                 }
             }

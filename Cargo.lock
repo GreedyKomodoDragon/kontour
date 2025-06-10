@@ -11,6 +11,7 @@ dependencies = [
  "dioxus-hooks",
  "k8s-openapi",
  "kube",
+ "serde",
 ]
 
 [[package]]
