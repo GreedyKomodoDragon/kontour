@@ -1,4 +1,4 @@
-use crate::k8s::get_recent_events;
+use crate::k8s::{get_recent_events, get_cluster_resources, ClusterResourceUsage};
 use dioxus::prelude::*;
 use k8s_openapi::api::core::v1::Event;
 use kube::Client;
@@ -10,6 +10,7 @@ const OVERVIEW_CSS: Asset = asset!("/assets/styling/overview.css");
 pub fn Home() -> Element {
     let client = use_context::<Client>();
     let events = use_signal(Vec::<Event>::new);
+    let resources = use_signal(|| ClusterResourceUsage::default());
     
     // Fetch recent events
     use_effect({
@@ -26,15 +27,30 @@ pub fn Home() -> Element {
             });
         }
     });
-    rsx! {
-        document::Link { rel: "stylesheet", href: OVERVIEW_CSS }
+    // Fetch cluster resources
+    use_effect({
+        let client = client.clone();
+        let mut resources = resources.clone();
         
+        move || {
+            spawn({
+                let client = client.clone();
+                async move {
+                    let usage = get_cluster_resources(client).await;
+                    resources.set(usage);
+                }
+            });
+        }
+    });
+
+    rsx! {
+        link { rel: "stylesheet", href: OVERVIEW_CSS }
         div { class: "overview-container",
             div { class: "overview-header",
                 h1 { "Cluster Overview" }
             }
             
-            // Cluster Status Cards
+            // // Cluster Status Cards
             div { class: "cluster-status",
                 div { class: "status-card",
                     h3 { "Cluster Status" }
@@ -68,11 +84,28 @@ pub fn Home() -> Element {
                         }
                         div { class: "resource-stats",
                             div { class: "stat-item",
-                                span { class: "stat-value", "65%" }
+                                span { 
+                                    class: "stat-value",
+                                    {
+                                        let percentage = if resources.read().cpu_total > 0.0 {
+                                            (resources.read().cpu_used / resources.read().cpu_total) * 100.0
+                                        } else {
+                                            0.0
+                                        };
+                                        format!("{:.1}%", percentage)
+                                    }
+                                }
                                 span { class: "stat-label", "Utilization" }
                             }
                             div { class: "stat-item",
-                                span { class: "stat-value", "12/16" }
+                                span { 
+                                    class: "stat-value",
+                                    {
+                                        format!("{:.1}/{:.1}", 
+                                            resources.read().cpu_used,
+                                            resources.read().cpu_total)
+                                    }
+                                }
                                 span { class: "stat-label", "Cores Used" }
                             }
                         }
@@ -83,11 +116,28 @@ pub fn Home() -> Element {
                         }
                         div { class: "resource-stats",
                             div { class: "stat-item",
-                                span { class: "stat-value", "78%" }
+                                span { 
+                                    class: "stat-value",
+                                    {
+                                        let percentage = if resources.read().memory_total > 0.0 {
+                                            (resources.read().memory_used / resources.read().memory_total) * 100.0
+                                        } else {
+                                            0.0
+                                        };
+                                        format!("{:.1}%", percentage)
+                                    }
+                                }
                                 span { class: "stat-label", "Utilization" }
                             }
                             div { class: "stat-item",
-                                span { class: "stat-value", "47/64" }
+                                span { 
+                                    class: "stat-value",
+                                    {
+                                        format!("{:.1}/{:.1}", 
+                                            resources.read().memory_used,
+                                            resources.read().memory_total)
+                                    }
+                                }
                                 span { class: "stat-label", "GB Used" }
                             }
                         }
@@ -98,11 +148,28 @@ pub fn Home() -> Element {
                         }
                         div { class: "resource-stats",
                             div { class: "stat-item",
-                                span { class: "stat-value", "45%" }
+                                span { 
+                                    class: "stat-value",
+                                    {
+                                        let percentage = if resources.read().storage_total > 0.0 {
+                                            (resources.read().storage_used / resources.read().storage_total) * 100.0
+                                        } else {
+                                            0.0
+                                        };
+                                        format!("{:.1}%", percentage)
+                                    }
+                                }
                                 span { class: "stat-label", "Utilization" }
                             }
                             div { class: "stat-item",
-                                span { class: "stat-value", "450/1000" }
+                                span { 
+                                    class: "stat-value",
+                                    {
+                                        format!("{:.1}/{:.1}", 
+                                            resources.read().storage_used,
+                                            resources.read().storage_total)
+                                    }
+                                }
                                 span { class: "stat-label", "GB Used" }
                             }
                         }
