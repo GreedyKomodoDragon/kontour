@@ -5,7 +5,7 @@ mod namespace_item;
 pub use namespace_item::{NamespaceItem, ResourceQuota, LimitRange, NamespaceItemProps};
 
 mod node_item;
-pub use node_item::{NodeItem, NodeItemProps};
+pub use node_item::{NodeItem, NodeItemProps, NodeCondition};
 
 mod hero;
 pub mod kubeconfig_name_dialog;
@@ -53,4 +53,3 @@ mod cronjob_item;
 pub use cronjob_item::CronJobItem;
 
 mod pod_containers;
-

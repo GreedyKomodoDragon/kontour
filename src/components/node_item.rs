@@ -1,6 +1,12 @@
 use dioxus::prelude::*;
 
 #[derive(Props, PartialEq, Clone)]
+pub struct NodeCondition {
+    pub condition_type: String,
+    pub status: String,
+}
+
+#[derive(Props, PartialEq, Clone)]
 pub struct NodeItemProps {
     pub name: String,
     pub node_type: String,
@@ -13,6 +19,7 @@ pub struct NodeItemProps {
     pub cpu_usage: f32,
     pub memory_usage: f32,
     pub storage_usage: f32,
+    pub conditions: Vec<NodeCondition>,
 }
 
 #[component]
@@ -25,11 +32,6 @@ pub fn NodeItem(props: NodeItemProps) -> Element {
                 div { class: "node-title",
                     h3 { "{props.name}" }
                     span { class: "status-badge status-healthy", "{props.status}" }
-                }
-                div { class: "node-controls",
-                    button { class: "btn-icon", title: "Cordon", "🔒" }
-                    button { class: "btn-icon", title: "Drain", "⭕" }
-                    button { class: "btn-icon", title: "Delete", "🗑️" }
                 }
             }
 
@@ -96,21 +98,30 @@ pub fn NodeItem(props: NodeItemProps) -> Element {
             div { class: "node-conditions",
                 h4 { "Node Conditions" }
                 div { class: "conditions-list",
-                    div { class: "condition status-healthy",
-                        span { class: "node-condition-type", "Ready" }
-                        span { class: "node-condition-status", "True" }
-                    }
-                    div { class: "condition status-healthy",
-                        span { class: "node-condition-type", "MemoryPressure" }
-                        span { class: "node-condition-status", "False" }
-                    }
-                    div { class: "condition status-healthy",
-                        span { class: "node-condition-type", "DiskPressure" }
-                        span { class: "node-condition-status", "False" }
-                    }
-                    div { class: "condition status-healthy",
-                        span { class: "node-condition-type", "PIDPressure" }
-                        span { class: "node-condition-status", "False" }
+                    {
+                        props.conditions.iter().map(|condition| {
+                            let status_class = match (condition.condition_type.as_str(), condition.status.as_str()) {
+                                ("Ready", "True") => "status-healthy",
+                                ("Ready", _) => "status-critical",
+                                (_, "True") => "status-critical",  // For pressure conditions, True is bad
+                                (_, "False") => "status-healthy",  // For pressure conditions, False is good
+                                _ => "status-warning"
+                            };
+                            
+                            rsx! {
+                                div { 
+                                    class: format!("condition {}", status_class),
+                                    span { 
+                                        class: "node-condition-type", 
+                                        "{condition.condition_type}" 
+                                    }
+                                    span { 
+                                        class: "node-condition-status",
+                                        "{condition.status}"
+                                    }
+                                }
+                            }
+                        })
                     }
                 }
             }

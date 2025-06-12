@@ -22,8 +22,9 @@ struct NodeFetcher {
 }
 
 impl NodeFetcher {
-    async fn fetch_node_info(client: Client, node_name: &str) -> NodeInfo {
+    async fn fetch_node_info(client: Client, node: Node) -> NodeInfo {
         let pods_api: Api<Pod> = Api::all(client.clone());
+        let node_name = node.metadata.name.as_deref().unwrap_or_default();
         
         let pods = match pods_api.list(&ListParams::default()).await {
             Ok(pod_list) => pod_list.items.into_iter()
@@ -39,7 +40,7 @@ impl NodeFetcher {
         };
 
         NodeInfo {
-            node: Node::default(), // Will be filled in later
+            node,
             pods,
         }
     }
@@ -57,11 +58,8 @@ impl NodeFetcher {
                 Ok(node_list) => {
                     let mut node_infos = Vec::new();
                     for node in node_list.items {
-                        if let Some(name) = &node.metadata.name {
-                            let mut info = Self::fetch_node_info(client.clone(), name).await;
-                            info.node = node;
-                            node_infos.push(info);
-                        }
+                        let info = Self::fetch_node_info(client.clone(), node).await;
+                        node_infos.push(info);
                     }
                     nodes.set(node_infos);
                 }
@@ -210,8 +208,17 @@ pub fn Nodes() -> Element {
             let cpu_allocatable = NodeFetcher::parse_resource_quantity(&allocatable.get("cpu")
                 .map(|q| q.0.clone())
                 .unwrap_or_else(|| "0".into()));
+            let cpu_reserved = cpu_total - cpu_allocatable;
+            let cpu_requested = node_info.pods.iter()
+                .filter_map(|pod| pod.spec.as_ref())
+                .flat_map(|spec| spec.containers.iter())
+                .filter_map(|container| container.resources.as_ref())
+                .filter_map(|resources| resources.requests.as_ref())
+                .filter_map(|requests| requests.get("cpu"))
+                .map(|q| NodeFetcher::parse_resource_quantity(&q.0))
+                .sum::<f32>();
             let cpu_usage = if cpu_total > 0.0 {
-                ((cpu_total - cpu_allocatable) / cpu_total * 100.0).max(0.0)
+                ((cpu_reserved + cpu_requested) / cpu_total * 100.0).min(100.0)
             } else {
                 0.0
             };
@@ -223,21 +230,39 @@ pub fn Nodes() -> Element {
             let memory_allocatable = NodeFetcher::parse_resource_quantity(&allocatable.get("memory")
                 .map(|q| q.0.clone())
                 .unwrap_or_else(|| "0".into()));
+            let memory_reserved = memory_total - memory_allocatable;
+            let memory_requested = node_info.pods.iter()
+                .filter_map(|pod| pod.spec.as_ref())
+                .flat_map(|spec| spec.containers.iter())
+                .filter_map(|container| container.resources.as_ref())
+                .filter_map(|resources| resources.requests.as_ref())
+                .filter_map(|requests| requests.get("memory"))
+                .map(|q| NodeFetcher::parse_resource_quantity(&q.0))
+                .sum::<f32>();
             let memory_usage = if memory_total > 0.0 {
-                ((memory_total - memory_allocatable) / memory_total * 100.0).max(0.0)
+                ((memory_reserved + memory_requested) / memory_total * 100.0).min(100.0)
             } else {
                 0.0
             };
 
-            // Calculate storage usage
+            // Calculate storage usage based on pod ephemeral storage requests
             let storage_total = NodeFetcher::parse_resource_quantity(&capacity.get("ephemeral-storage")
                 .map(|q| q.0.clone())
                 .unwrap_or_else(|| "0".into()));
             let storage_allocatable = NodeFetcher::parse_resource_quantity(&allocatable.get("ephemeral-storage")
                 .map(|q| q.0.clone())
                 .unwrap_or_else(|| "0".into()));
+            let storage_reserved = storage_total - storage_allocatable;
+            let storage_requested = node_info.pods.iter()
+                .filter_map(|pod| pod.spec.as_ref())
+                .flat_map(|spec| spec.containers.iter())
+                .filter_map(|container| container.resources.as_ref())
+                .filter_map(|resources| resources.requests.as_ref())
+                .filter_map(|requests| requests.get("ephemeral-storage"))
+                .map(|q| NodeFetcher::parse_resource_quantity(&q.0))
+                .sum::<f32>();
             let storage_usage = if storage_total > 0.0 {
-                ((storage_total - storage_allocatable) / storage_total * 100.0).max(0.0)
+                ((storage_reserved + storage_requested) / storage_total * 100.0).min(100.0)
             } else {
                 0.0
             };
@@ -258,19 +283,27 @@ pub fn Nodes() -> Element {
         })
         .collect();
 
+    let search_query = search_query().to_lowercase();
     let filtered_nodes: Vec<_> = node_data
         .iter()
         .filter(|node| {
-            let type_match = selected_node() == "all" || node.node_type == selected_node();
-            let search_match = if search_query().is_empty() {
-                true
-            } else {
-                let query = search_query().to_lowercase();
-                node.name.to_lowercase().contains(&query) ||
-                node.ip.to_lowercase().contains(&query) ||
-                node.os.to_lowercase().contains(&query)
-            };
-            type_match && search_match
+            // First check the type filter since it's a simple equality check
+            if selected_node() != "all" && node.node_type != selected_node() {
+                return false;
+            }
+            
+            // If no search query, include all nodes that match the type filter
+            if search_query.is_empty() {
+                return true;
+            }
+            
+            // Search across multiple fields, ordered by importance
+            node.name.to_lowercase().contains(&search_query) ||
+            node.ip.to_lowercase().contains(&search_query) ||
+            node.os.to_lowercase().contains(&search_query) ||
+            node.status.to_lowercase().contains(&search_query) ||
+            node.kubernetes_version.to_lowercase().contains(&search_query) ||
+            node.architecture.to_lowercase().contains(&search_query)
         })
         .collect();
 
@@ -306,14 +339,16 @@ pub fn Nodes() -> Element {
                     }
                 }
                 div { class: "header-actions",
-                    button { class: "btn btn-primary", "Add Node" }
                     button { class: "btn btn-secondary", onclick: refresh, "Refresh" }
                 }
             }
 
             div { class: "nodes-grid",
-                {filtered_nodes.iter().map(|node| rsx!(
-                    NodeItem {
+                {filtered_nodes.iter().map(|node| {
+                    let binding = nodes();
+                    let original_node = binding.iter()
+                        .find(|n| n.node.metadata.name.as_ref().map_or(false, |name| name == &node.name));
+                    rsx!(NodeItem {
                         name: node.name.clone(),
                         node_type: node.node_type.clone(),
                         status: node.status.clone(),
@@ -325,8 +360,18 @@ pub fn Nodes() -> Element {
                         cpu_usage: node.cpu_usage,
                         memory_usage: node.memory_usage,
                         storage_usage: node.storage_usage,
-                    }
-                ))}
+                        conditions: original_node
+                            .and_then(|n| n.node.status.as_ref())
+                            .and_then(|status| status.conditions.as_ref())
+                            .map(|conditions| {
+                                conditions.iter().map(|c| crate::components::NodeCondition {
+                                    condition_type: c.type_.clone(),
+                                    status: c.status.clone(),
+                                }).collect()
+                            })
+                            .unwrap_or_default(),
+                    })
+                })}
             }
         }
     }
