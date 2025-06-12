@@ -1,4 +1,4 @@
-use crate::k8s::{get_recent_events, get_cluster_resources, ClusterResourceUsage};
+use crate::k8s::{get_cluster_resources, get_recent_events, ClusterResourceUsage};
 use dioxus::prelude::*;
 use k8s_openapi::api::core::v1::Event;
 use kube::Client;
@@ -11,12 +11,12 @@ pub fn Home() -> Element {
     let client = use_context::<Client>();
     let events = use_signal(Vec::<Event>::new);
     let resources = use_signal(|| ClusterResourceUsage::default());
-    
+
     // Fetch recent events
     use_effect({
         let client = client.clone();
         let mut events = events.clone();
-        
+
         move || {
             spawn({
                 let client = client.clone();
@@ -31,7 +31,7 @@ pub fn Home() -> Element {
     use_effect({
         let client = client.clone();
         let mut resources = resources.clone();
-        
+
         move || {
             spawn({
                 let client = client.clone();
@@ -49,27 +49,41 @@ pub fn Home() -> Element {
             div { class: "overview-header",
                 h1 { "Cluster Overview" }
             }
-            
-            // // Cluster Status Cards
+
+            // Cluster Status Cards
             div { class: "cluster-status",
                 div { class: "status-card",
                     h3 { "Cluster Status" }
-                    p { class: "status-value status-healthy", "Healthy" }
-                    p { class: "status-subtext", "Last checked 2 minutes ago" }
+                    p {
+                        class: format!("status-value status-{}", resources.read().cluster_status.status.to_lowercase()),
+                        { format!("{}", resources.read().cluster_status.status) }
+                    }
+                    p {
+                        class: "status-subtext",
+                        { format!("{}", resources.read().cluster_status.message) }
+                    }
                 }
                 div { class: "status-card",
                     h3 { "Node Count" }
-                    p { class: "status-value", "4" }
-                    p { class: "status-subtext", "All nodes operational" }
+                    p { class: "status-value", { format!("{}", resources.read().node_count) } }
+                    p { class: "status-subtext", "Active nodes" }
                 }
                 div { class: "status-card",
                     h3 { "Pod Count" }
-                    p { class: "status-value", "24/30" }
+                    p {
+                        class: "status-value",
+                        {
+                            format!("{}/{}", resources.read().running_pods, resources.read().pod_count)
+                        }
+                    }
                     p { class: "status-subtext", "Running/Total" }
                 }
                 div { class: "status-card",
                     h3 { "Namespace Count" }
-                    p { class: "status-value", "6" }
+                    p {
+                        class: "status-value",
+                        { format!("{}", resources.read().namespace_count) }
+                    }
                     p { class: "status-subtext", "Active namespaces" }
                 }
             }
@@ -84,7 +98,7 @@ pub fn Home() -> Element {
                         }
                         div { class: "resource-stats",
                             div { class: "stat-item",
-                                span { 
+                                span {
                                     class: "stat-value",
                                     {
                                         let percentage = if resources.read().cpu_total > 0.0 {
@@ -98,10 +112,10 @@ pub fn Home() -> Element {
                                 span { class: "stat-label", "Utilization" }
                             }
                             div { class: "stat-item",
-                                span { 
+                                span {
                                     class: "stat-value",
                                     {
-                                        format!("{:.1}/{:.1}", 
+                                        format!("{:.1}/{:.1}",
                                             resources.read().cpu_used,
                                             resources.read().cpu_total)
                                     }
@@ -116,7 +130,7 @@ pub fn Home() -> Element {
                         }
                         div { class: "resource-stats",
                             div { class: "stat-item",
-                                span { 
+                                span {
                                     class: "stat-value",
                                     {
                                         let percentage = if resources.read().memory_total > 0.0 {
@@ -130,10 +144,10 @@ pub fn Home() -> Element {
                                 span { class: "stat-label", "Utilization" }
                             }
                             div { class: "stat-item",
-                                span { 
+                                span {
                                     class: "stat-value",
                                     {
-                                        format!("{:.1}/{:.1}", 
+                                        format!("{:.1}/{:.1}",
                                             resources.read().memory_used,
                                             resources.read().memory_total)
                                     }
@@ -148,7 +162,7 @@ pub fn Home() -> Element {
                         }
                         div { class: "resource-stats",
                             div { class: "stat-item",
-                                span { 
+                                span {
                                     class: "stat-value",
                                     {
                                         let percentage = if resources.read().storage_total > 0.0 {
@@ -162,10 +176,10 @@ pub fn Home() -> Element {
                                 span { class: "stat-label", "Utilization" }
                             }
                             div { class: "stat-item",
-                                span { 
+                                span {
                                     class: "stat-value",
                                     {
-                                        format!("{:.1}/{:.1}", 
+                                        format!("{:.1}/{:.1}",
                                             resources.read().storage_used,
                                             resources.read().storage_total)
                                     }
@@ -202,7 +216,7 @@ pub fn Home() -> Element {
                         };
 
                         rsx! {
-                            div { 
+                            div {
                                 class: format!("event-card {}", severity_class),
                                 div { class: "event-line",
                                     span { class: "event-reason", "{reason}" }
