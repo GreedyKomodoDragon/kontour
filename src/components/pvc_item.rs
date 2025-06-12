@@ -85,8 +85,6 @@ pub fn PvcItem(props: PvcItemProps) -> Element {
                         title: if is_expanded() { "Collapse" } else { "Expand" },
                         if is_expanded() { "🔼" } else { "🔽" }
                     }
-                    button { class: "btn-icon", onclick: move |evt| evt.stop_propagation(), title: "Edit", "✏️" }
-                    button { class: "btn-icon", onclick: move |evt| evt.stop_propagation(), title: "Delete", "🗑️" }
                 }
             }
 

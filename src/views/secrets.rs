@@ -117,13 +117,6 @@ pub fn Secrets() -> Element {
                 }
                 div { class: "header-actions",
                     button { 
-                        class: "btn btn-primary",
-                        onclick: move |_| {
-                            navigate.push("/secrets/create");
-                        },
-                        "Create Secret" 
-                    }
-                    button { 
                         class: "btn btn-secondary",
                         onclick: refresh,
                         "Refresh" 

@@ -107,13 +107,6 @@ pub fn Pvcs() -> Element {
                 }
                 div { class: "header-actions",
                     button { 
-                        class: "btn btn-primary",
-                        onclick: move |_| {
-                            navigate.push("/pvcs/create");
-                        },
-                        "Create PVC" 
-                    }
-                    button { 
                         class: "btn btn-secondary",
                         onclick: refresh,
                         "Refresh" 

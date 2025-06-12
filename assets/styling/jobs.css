@@ -93,24 +93,9 @@
     gap: 20px;
 }
 
-
-.status-badge {
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 500;
-    flex-shrink: 0;
-    line-height: 1.5;
-}
-
 .status-succeeded {
     background: rgba(74, 222, 128, 0.2);
     color: #4ade80;
-}
-
-.status-failed {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
 }
 
 .status-active {

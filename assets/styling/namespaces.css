@@ -74,6 +74,10 @@
     min-width: 0;
 }
 
+.margin-top-6 {
+    margin-top: 6px;
+}
+
 .metric-label {
     width: 40px;
     color: rgba(255, 255, 255, 0.6);
@@ -228,7 +232,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
     min-width: 0; /* Allow content to shrink */
 }
 
@@ -248,14 +251,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.status-badge {
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 500;
-    flex-shrink: 0;
 }
 
 .namespace-controls {

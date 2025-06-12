@@ -100,17 +100,7 @@
     color: #ffffff;
 }
 
-.status-badge {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.status-badge.status-healthy {
-    background: rgba(74, 222, 128, 0.2);
-    color: #4ade80;
-}
+/* Status badge styles moved to main.css */
 
 .node-controls {
     display: flex;

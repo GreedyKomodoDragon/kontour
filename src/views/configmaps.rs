@@ -116,13 +116,6 @@ pub fn ConfigMaps() -> Element {
                 }
                 div { class: "header-actions",
                     button { 
-                        class: "btn btn-primary",
-                        onclick: move |_| {
-                            navigate.push("/configmaps/create");
-                        },
-                        "Create ConfigMap" 
-                    }
-                    button { 
                         class: "btn btn-secondary",
                         onclick: refresh,
                         "Refresh" 

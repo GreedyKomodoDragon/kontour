@@ -107,20 +107,6 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    /* Remove background/padding if details has padding */
-    /* background: rgba(255, 255, 255, 0.03); */
-    /* border-radius: 6px; */
-    /* padding: 12px; */
-}
-
-/* Status badges - Styles seem okay */
-.status-badge {
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 500;
-    flex-shrink: 0;
-    line-height: 1.5; /* Improve vertical alignment */
 }
 
 .status-running {
@@ -133,19 +119,11 @@
     color: #facc15;
 }
 
-.status-failed {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-}
-
 .status-succeeded {
     background: rgba(74, 222, 128, 0.2);
     color: #4ade80;
 }
 
-.status-true {
-    color: #4ade80;
-}
 
 .status-false {
     color: #ef4444;

@@ -71,16 +71,6 @@
     text-overflow: ellipsis;
 }
 
-/* --- Status Badge Styles (Dark Theme) --- */
-.status-badge {
-    padding: 2px 8px; /* Match pods */
-    border-radius: 12px;
-    font-size: 11px; /* Match pods */
-    font-weight: 500;
-    flex-shrink: 0;
-    white-space: nowrap;
-}
-
 /* Adjust status colors for service types if desired */
 .status-running { /* e.g., LoadBalancer */
     background: rgba(74, 222, 128, 0.2);
@@ -95,16 +85,6 @@
 .status-unknown { /* e.g., ClusterIP */
     background: rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.7);
-}
-
-.status-failed { /* Not typical for services, but keep for consistency */
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-}
-
-/* Status for conditions (if used) */
-.status-true {
-    color: #4ade80;
 }
 
 .status-false {

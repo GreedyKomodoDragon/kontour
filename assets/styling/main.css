@@ -640,3 +640,47 @@ html, body {
     background: rgba(250, 204, 21, 0.2);
     color: #facc15;
 }
+
+/* --- Status Badge Styles --- */
+.status-badge {
+    padding: 2px 8px; 
+    border-radius: 12px;
+    font-size: 11px; 
+    font-weight: 500;
+    flex-shrink: 0;
+    white-space: nowrap;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Common status colors */
+.status-bound, .status-ready, .status-active, .status-completed, .status-succeeded {
+    background: rgba(74, 222, 128, 0.2);
+    color: #4ade80;
+}
+
+.status-pending, .status-waiting {
+    background: rgba(250, 204, 21, 0.2);
+    color: #facc15;
+}
+
+.status-error, .status-failed, .status-crashloopbackoff, .status-lost {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.status-unknown, .status-terminated {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.status-running, .status-true, .status-value {
+    color: rgb(74, 222, 128);
+}
+
+.resource-header {
+    color: white;
+    margin-bottom: 10px;
+    font-size: 14px;
+}

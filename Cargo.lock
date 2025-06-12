@@ -9,6 +9,7 @@ dependencies = [
  "dioxus",
  "dioxus-desktop",
  "dioxus-hooks",
+ "futures",
  "k8s-openapi",
  "kube",
  "serde",

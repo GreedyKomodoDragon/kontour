@@ -53,13 +53,6 @@
     user-select: text;
 }
 
-.status-badge {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
-}
-
 .cronjob-info-short {
     display: flex;
     align-items: center;
@@ -195,10 +188,6 @@
     color: rgb(148, 163, 184);
 }
 
-.status-failed {
-    background: rgba(239, 68, 68, 0.2);
-    color: rgb(239, 68, 68);
-}
 
 /* Containers section */
 .containers-section {

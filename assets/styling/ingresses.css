@@ -94,20 +94,6 @@
     max-width: none;
 }
 
-
-/* --- Status Badge Styles (Dark Theme) - Re-use from services --- */
-.status-badge {
-    padding: 2px 8px; /* Match pods/services */
-    border-radius: 12px;
-    font-size: 11px; /* Match pods/services */
-    font-weight: 500;
-    flex-shrink: 0;
-    white-space: nowrap;
-    max-width: 150px; /* Limit width */
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
 .status-running { /* e.g., Has LB IP */
     background: rgba(74, 222, 128, 0.2);
     color: #4ade80;
@@ -123,10 +109,6 @@
     color: rgba(255, 255, 255, 0.7);
 }
 
-.status-failed { /* Not typical for ingress */
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-}
 
 .ingress-controls { 
     display: flex;

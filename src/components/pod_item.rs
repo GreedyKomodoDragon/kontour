@@ -150,15 +150,6 @@ pub fn PodItem(props: PodItemProps) -> Element {
             class: "pod-card",
             div {
                 class: "pod-header",
-                // Optional: Keep header click commented or remove if only button should toggle
-                // onclick: move |_| {
-                //     let mut set = expanded_pods.write();
-                //     if set.contains(&pod_data.name) {
-                //         set.remove(&pod_data.name);
-                //     } else {
-                //         set.insert(pod_data.name.clone());
-                //     }
-                // },
                 div { class: "pod-title",
                     h3 { "{pod_data.name}" }
                     span { class: "status-badge status-{pod_data.status.to_lowercase()}", "{pod_data.status}" }
@@ -172,24 +163,6 @@ pub fn PodItem(props: PodItemProps) -> Element {
                         },
                         title: if is_expanded() { "Collapse" } else { "Expand" },
                         if is_expanded() { "🔼" } else { "🔽" }
-                    }
-                    button {
-                        class: "btn-icon",
-                        onclick: move |evt| evt.stop_propagation(),
-                        title: "View Logs",
-                        "📄"
-                    }
-                    button {
-                        class: "btn-icon",
-                        onclick: move |evt| evt.stop_propagation(),
-                        title: "Shell",
-                        "🖥️"
-                    }
-                    button {
-                        class: "btn-icon",
-                        onclick: move |evt| evt.stop_propagation(),
-                        title: "Delete",
-                        "🗑️"
                     }
                 }
             }

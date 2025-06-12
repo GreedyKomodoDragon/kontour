@@ -72,6 +72,8 @@ fn parse_resource_value(value: &str) -> Option<f32> {
 
 #[component]
 pub fn NamespaceItem(props: NamespaceItemProps) -> Element {
+    let mut is_expanded = use_signal(|| false);
+
     rsx! {
         div {
             key: "{props.name}",
@@ -83,127 +85,124 @@ pub fn NamespaceItem(props: NamespaceItemProps) -> Element {
                     h3 {
                         "{props.name}"
                     }
-                    span {
-                        class: "status-badge status-healthy",
-                        "{props.status}"
-                    }
                 }
                 div {
                     class: "namespace-controls",
                     button {
-                        class: "btn-icon",
-                        title: "Edit",
-                        "✏️"
-                    }
-                    button {
-                        class: "btn-icon",
-                        title: "Delete",
-                        "🗑️"
+                        class: "btn-icon expand-toggle",
+                        onclick: move |evt| {
+                            evt.stop_propagation();
+                            is_expanded.set(!is_expanded());
+                        },
+                        title: if is_expanded() { "Collapse" } else { "Expand" },
+                        if is_expanded() { "🔼" } else { "🔽" }
                     }
                 }
             }
 
-            div {
-                class: "labels-section",
-                h4 {
-                    "Labels"
-                }
+            {is_expanded().then(|| rsx!(
                 div {
-                    class: "labels-grid",
-                    {props.labels.iter().map(|(key, value)| rsx!(
-                        div {
-                            key: "{key}",
-                            class: "label",
-                            span {
-                                class: "label-key",
-                                "{key}"
-                            }
-                            span {
-                                class: "label-value",
-                                "{value}"
-                            }
-                        }
-                    ))}
-                }
-            }
-
-            div { class: "resource-section",
-                h4 { "Resource Quota" }
-                div { class: "resource-metrics",
-                    div { class: "metric",
-                        span { class: "metric-label", "CPU" }
-                        div { class: "namespace-progress-bar",
+                    class: "labels-section margin-top-6",
+                    h4 {
+                        "Labels"
+                    }
+                    div {
+                        class: "labels-grid",
+                        {props.labels.iter().map(|(key, value)| rsx!(
                             div {
-                                class: "progress-fill",
-                                style: "width: {calculate_progress_width(&props.resource_quota.cpu_used, &props.resource_quota.cpu_limit)}%"
+                                key: "{key}",
+                                class: "label",
+                                span {
+                                    class: "label-key",
+                                    "{key}"
+                                }
+                                span {
+                                    class: "label-value",
+                                    "{value}"
+                                }
                             }
-                        }
-                        span { class: "metric-value", "{props.resource_quota.cpu_used}/{props.resource_quota.cpu_limit}" }
-                    }
-                    div { class: "metric",
-                        span { class: "metric-label", "Mem" }
-                        div { class: "namespace-progress-bar",
-                            div {
-                                class: "progress-fill",
-                                style: "width: {calculate_progress_width(&props.resource_quota.memory_used, &props.resource_quota.memory_limit)}%"
-                            }
-                        }
-                        span { class: "metric-value", "{props.resource_quota.memory_used}/{props.resource_quota.memory_limit}" }
-                    }
-                    div { class: "metric",
-                        span { class: "metric-label", "Pods" }
-                        div { class: "namespace-progress-bar",
-                            div {
-                                class: "progress-fill",
-                                style: "width: {calculate_pod_progress(props.resource_quota.pods_used, props.resource_quota.pods_limit)}%"
-                            }
-                        }
-                        span { class: "metric-value", "{props.resource_quota.pods_used}/{props.resource_quota.pods_limit}" }
+                        ))}
                     }
                 }
-            }
 
-            {props.limit_range.as_ref().map(|lr| rsx!(
-                div { class: "limit-section",
-                    h4 { "Limit Range" }
-                    div { class: "limit-grid",
-                        div { class: "limit-group",
-                            div { class: "limit-item",
-                                span { class: "limit-label", "Default Request CPU" }
-                                span { class: "limit-value", "{lr.default_request_cpu}" }
+                div { class: "resource-section",
+                    h4 { class: "resource-header", "Resource Quota" }
+                    div { class: "resource-metrics",
+                        div { class: "metric",
+                            span { class: "metric-label", "CPU" }
+                            div { class: "namespace-progress-bar",
+                                div {
+                                    class: "progress-fill",
+                                    style: "width: {calculate_progress_width(&props.resource_quota.cpu_used, &props.resource_quota.cpu_limit)}%"
+                                }
                             }
-                            div { class: "limit-item",
-                                span { class: "limit-label", "Default Request Memory" }
-                                span { class: "limit-value", "{lr.default_request_memory}" }
-                            }
+                            span { class: "metric-value", "{props.resource_quota.cpu_used}/{props.resource_quota.cpu_limit}" }
                         }
-                        div { class: "limit-group",
-                            div { class: "limit-item",
-                                span { class: "limit-label", "Default Limit CPU" }
-                                span { class: "limit-value", "{lr.default_limit_cpu}" }
+                        div { class: "metric",
+                            span { class: "metric-label", "Mem" }
+                            div { class: "namespace-progress-bar",
+                                div {
+                                    class: "progress-fill",
+                                    style: "width: {calculate_progress_width(&props.resource_quota.memory_used, &props.resource_quota.memory_limit)}%"
+                                }
                             }
-                            div { class: "limit-item",
-                                span { class: "limit-label", "Default Limit Memory" }
-                                span { class: "limit-value", "{lr.default_limit_memory}" }
+                            span { class: "metric-value", "{props.resource_quota.memory_used}/{props.resource_quota.memory_limit}" }
+                        }
+                        div { class: "metric",
+                            span { class: "metric-label", "Pods" }
+                            div { class: "namespace-progress-bar",
+                                div {
+                                    class: "progress-fill",
+                                    style: "width: {calculate_pod_progress(props.resource_quota.pods_used, props.resource_quota.pods_limit)}%"
+                                }
                             }
+                            span { class: "metric-value", "{props.resource_quota.pods_used}/{props.resource_quota.pods_limit}" }
                         }
                     }
                 }
-            ))}
 
-            div { class: "namespace-footer",
-                div { class: "info-item",
-                    span { class: "info-label", "Age" }
-                    span { class: "info-value", "{props.age}" }
-                }
-                div { class: "info-item",
-                    span { class: "info-label", "Phase" }
-                    span { class: "info-value", "{props.phase}" }
-                }
-                div { class: "info-item",
-                    span { class: "info-label", "Pods" }
-                    span { class: "info-value", "{props.pod_count}" }
-                }
+                {props.limit_range.as_ref().map(|lr| rsx!(
+                    div { class: "limit-section",
+                        h4 { "Limit Range" }
+                        div { class: "limit-grid",
+                            div { class: "limit-group",
+                                div { class: "limit-item",
+                                    span { class: "limit-label", "Default Request CPU" }
+                                    span { class: "limit-value", "{lr.default_request_cpu}" }
+                                }
+                                div { class: "limit-item",
+                                    span { class: "limit-label", "Default Request Memory" }
+                                    span { class: "limit-value", "{lr.default_request_memory}" }
+                                }
+                            }
+                            div { class: "limit-group",
+                                div { class: "limit-item",
+                                    span { class: "limit-label", "Default Limit CPU" }
+                                    span { class: "limit-value", "{lr.default_limit_cpu}" }
+                                }
+                                div { class: "limit-item",
+                                    span { class: "limit-label", "Default Limit Memory" }
+                                    span { class: "limit-value", "{lr.default_limit_memory}" }
+                                }
+                            }
+                        }
+                    }
+                ))}
+
+                div { class: "namespace-footer",
+                    div { class: "info-item",
+                        span { class: "info-label", "Age" }
+                        span { class: "info-value", "{props.age}" }
+                    }
+                    div { class: "info-item",
+                        span { class: "info-label", "Phase" }
+                        span { class: "info-value", "{props.phase}" }
+                    }
+                    div { class: "info-item",
+                        span { class: "info-label", "Pods" }
+                        span { class: "info-value", "{props.pod_count}" }
+                    }
+                }))
             }
         }
     }

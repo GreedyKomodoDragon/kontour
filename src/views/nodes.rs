@@ -1,9 +1,9 @@
 use dioxus::{logger::tracing, prelude::*};
-use k8s_openapi::{
-    api::core::v1::{Node, Pod},
-    apimachinery::pkg::api::resource::Quantity,
-};
-use kube::{api::ListParams, Api, Client};
+use k8s_openapi::{api::core::v1::{Node, Pod}, apimachinery::pkg::api::resource::Quantity};
+use kube::{api::{ListParams, Api}, Client};
+use std::collections::BTreeMap;
+
+use crate::k8s::{fetch_node_metrics, apply_metrics_to_node, parse_resource_quantity};
 
 use crate::components::{NodeItem, NodeItemProps};
 
@@ -52,9 +52,12 @@ impl NodeFetcher {
         tracing::info!("Starting node fetch...");
 
         spawn(async move {
-            let api = Api::<Node>::all(client.clone());
+            let nodes_api = Api::<Node>::all(client.clone());
+            
+            // Fetch both nodes and metrics in parallel
+            let node_list = nodes_api.list(&ListParams::default()).await;
 
-            match api.list(&ListParams::default()).await {
+            match node_list {
                 Ok(node_list) => {
                     let mut node_infos = Vec::new();
                     for node in node_list.items {
@@ -70,32 +73,7 @@ impl NodeFetcher {
         });
     }
 
-    fn parse_resource_quantity(quantity: &str) -> f32 {
-        if quantity.is_empty() || quantity == "0" {
-            return 0.0;
-        }
-
-        // Parse CPU values
-        if quantity.ends_with('m') {
-            return quantity.trim_end_matches('m')
-                .parse::<f32>()
-                .map(|v| v / 1000.0)
-                .unwrap_or(0.0);
-        }
-
-        // Parse memory/storage values
-        if let Some(value) = quantity.strip_suffix("Ki") {
-            return value.parse::<f32>().map(|v| v / (1024.0 * 1024.0)).unwrap_or(0.0);
-        }
-        if let Some(value) = quantity.strip_suffix("Mi") {
-            return value.parse::<f32>().map(|v| v / 1024.0).unwrap_or(0.0);
-        }
-        if let Some(value) = quantity.strip_suffix("Gi") {
-            return value.parse::<f32>().ok().unwrap_or(0.0);
-        }
-
-        quantity.parse::<f32>().unwrap_or(0.0)
-    }
+    // Moved to k8s::node_metrics::parse_resource_quantity
 }
 
 #[derive(Clone)]
@@ -134,6 +112,9 @@ pub fn Nodes() -> Element {
         let fetcher = fetcher.clone();
         move |_: Event<MouseData>| fetcher.fetch()
     };
+
+    // Fetch metrics first
+    let metrics_map = futures::executor::block_on(fetch_node_metrics(&client));
 
     // Convert k8s Node objects to our display format
     let node_data: Vec<NodeData> = nodes()
@@ -186,7 +167,7 @@ pub fn Nodes() -> Element {
                 .unwrap_or_default();
 
             // Calculate resource usage
-            let binding = std::collections::BTreeMap::new();
+            let binding = std::collections::BTreeMap::<String, Quantity>::new();
             let allocatable = node.status.as_ref()
                 .and_then(|status| status.allocatable.as_ref())
                 .unwrap_or(&binding);
@@ -201,68 +182,56 @@ pub fn Nodes() -> Element {
                 .unwrap_or(0);
             let current_pods = node_info.pods.len() as u32;
 
-            // Calculate CPU usage (as percentage of capacity)
-            let cpu_total = NodeFetcher::parse_resource_quantity(&capacity.get("cpu")
+            // Use the pre-fetched metrics
+            let binding = BTreeMap::new();
+            let metrics = metrics_map
+                .get(&name)
+                .map(|m| &m.usage)
+                .unwrap_or(&binding);
+
+            // Calculate CPU usage
+            let cpu_total = parse_resource_quantity(&capacity.get("cpu")
                 .map(|q| q.0.clone())
                 .unwrap_or_else(|| "0".into()));
-            let cpu_allocatable = NodeFetcher::parse_resource_quantity(&allocatable.get("cpu")
+
+            let cpu_used = parse_resource_quantity(&metrics.get("cpu")
                 .map(|q| q.0.clone())
                 .unwrap_or_else(|| "0".into()));
-            let cpu_reserved = cpu_total - cpu_allocatable;
-            let cpu_requested = node_info.pods.iter()
-                .filter_map(|pod| pod.spec.as_ref())
-                .flat_map(|spec| spec.containers.iter())
-                .filter_map(|container| container.resources.as_ref())
-                .filter_map(|resources| resources.requests.as_ref())
-                .filter_map(|requests| requests.get("cpu"))
-                .map(|q| NodeFetcher::parse_resource_quantity(&q.0))
-                .sum::<f32>();
+
             let cpu_usage = if cpu_total > 0.0 {
-                ((cpu_reserved + cpu_requested) / cpu_total * 100.0).min(100.0)
+                ((cpu_used / cpu_total * 100.0).min(100.0) * 100.0).round() / 100.0
             } else {
                 0.0
             };
 
             // Calculate memory usage
-            let memory_total = NodeFetcher::parse_resource_quantity(&capacity.get("memory")
+            let memory_total = parse_resource_quantity(&capacity.get("memory")
                 .map(|q| q.0.clone())
                 .unwrap_or_else(|| "0".into()));
-            let memory_allocatable = NodeFetcher::parse_resource_quantity(&allocatable.get("memory")
+            let memory_used = parse_resource_quantity(&metrics.get("memory")
                 .map(|q| q.0.clone())
                 .unwrap_or_else(|| "0".into()));
-            let memory_reserved = memory_total - memory_allocatable;
-            let memory_requested = node_info.pods.iter()
-                .filter_map(|pod| pod.spec.as_ref())
-                .flat_map(|spec| spec.containers.iter())
-                .filter_map(|container| container.resources.as_ref())
-                .filter_map(|resources| resources.requests.as_ref())
-                .filter_map(|requests| requests.get("memory"))
-                .map(|q| NodeFetcher::parse_resource_quantity(&q.0))
-                .sum::<f32>();
             let memory_usage = if memory_total > 0.0 {
-                ((memory_reserved + memory_requested) / memory_total * 100.0).min(100.0)
+                ((memory_used / memory_total * 100.0).min(100.0) * 100.0).round() / 100.0
             } else {
                 0.0
             };
 
-            // Calculate storage usage based on pod ephemeral storage requests
-            let storage_total = NodeFetcher::parse_resource_quantity(&capacity.get("ephemeral-storage")
+            // Calculate storage usage (still based on capacity since it's not in metrics)
+            let storage_total = parse_resource_quantity(&capacity.get("ephemeral-storage")
                 .map(|q| q.0.clone())
                 .unwrap_or_else(|| "0".into()));
-            let storage_allocatable = NodeFetcher::parse_resource_quantity(&allocatable.get("ephemeral-storage")
-                .map(|q| q.0.clone())
-                .unwrap_or_else(|| "0".into()));
-            let storage_reserved = storage_total - storage_allocatable;
-            let storage_requested = node_info.pods.iter()
-                .filter_map(|pod| pod.spec.as_ref())
-                .flat_map(|spec| spec.containers.iter())
-                .filter_map(|container| container.resources.as_ref())
-                .filter_map(|resources| resources.requests.as_ref())
-                .filter_map(|requests| requests.get("ephemeral-storage"))
-                .map(|q| NodeFetcher::parse_resource_quantity(&q.0))
-                .sum::<f32>();
+            let storage_used = if let Some(fs) = metrics.get("ephemeral-storage") {
+                parse_resource_quantity(&fs.0)
+            } else {
+                // Fallback to capacity-allocatable if metrics aren't available
+                let storage_allocatable = parse_resource_quantity(&allocatable.get("ephemeral-storage")
+                    .map(|q| q.0.clone())
+                    .unwrap_or_else(|| "0".into()));
+                storage_total - storage_allocatable
+            };
             let storage_usage = if storage_total > 0.0 {
-                ((storage_reserved + storage_requested) / storage_total * 100.0).min(100.0)
+                ((storage_used / storage_total * 100.0).min(100.0) * 100.0).round() / 100.0
             } else {
                 0.0
             };
@@ -276,9 +245,9 @@ pub fn Nodes() -> Element {
                 architecture,
                 ip,
                 pods: (current_pods, max_pods),
-                cpu_usage,
-                memory_usage,
-                storage_usage,
+                cpu_usage: cpu_usage as f32,
+                memory_usage: memory_usage as f32,
+                storage_usage: storage_usage as f32,
             }
         })
         .collect();

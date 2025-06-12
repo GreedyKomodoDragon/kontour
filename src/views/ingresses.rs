@@ -111,13 +111,6 @@ pub fn Ingresses() -> Element {
                 }
                 div { class: "header-actions",
                     button { 
-                        class: "btn btn-primary",
-                        onclick: move |_| {
-                            navigate.push("/ingresses/create");
-                        },
-                        "Create Ingress" 
-                    }
-                    button { 
                         class: "btn btn-secondary",
                         onclick: refresh,
                         "Refresh" 

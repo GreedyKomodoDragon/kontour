@@ -31,7 +31,7 @@ pub fn NodeItem(props: NodeItemProps) -> Element {
             div { class: "node-header",
                 div { class: "node-title",
                     h3 { "{props.name}" }
-                    span { class: "status-badge status-healthy", "{props.status}" }
+                    span { class: "status-badge status-unknown", "{props.status}" }
                 }
             }
 
@@ -103,19 +103,19 @@ pub fn NodeItem(props: NodeItemProps) -> Element {
                             let status_class = match (condition.condition_type.as_str(), condition.status.as_str()) {
                                 ("Ready", "True") => "status-healthy",
                                 ("Ready", _) => "status-critical",
-                                (_, "True") => "status-critical",  // For pressure conditions, True is bad
-                                (_, "False") => "status-healthy",  // For pressure conditions, False is good
+                                (_, "True") => "status-critical",
+                                (_, "False") => "status-healthy",
                                 _ => "status-warning"
                             };
-                            
+
                             rsx! {
-                                div { 
+                                div {
                                     class: format!("condition {}", status_class),
-                                    span { 
-                                        class: "node-condition-type", 
-                                        "{condition.condition_type}" 
+                                    span {
+                                        class: "node-condition-type",
+                                        "{condition.condition_type}"
                                     }
-                                    span { 
+                                    span {
                                         class: "node-condition-status",
                                         "{condition.status}"
                                     }
