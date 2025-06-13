@@ -1,4 +1,4 @@
-use crate::Route;
+use crate::{Route, FilePathsContext};
 // Import the new dialog component
 use crate::components::kubeconfig_name_dialog::KubeconfigNameDialog;
 use dioxus::{logger::tracing, prelude::*};
@@ -25,14 +25,51 @@ const INSIGHTS: Asset = asset!("/assets/images/insights.svg");
 
 #[component]
 pub fn Navbar() -> Element {
-    // Signal to store a list of added context names
-    let mut filenames = use_signal(|| Vec::<String>::new());
+    // Get file paths from context - provide default if not available
+    let file_paths_context = use_context::<FilePathsContext>();
+    
+    // Signal to store a list of added context names - initialize with provided file paths
+    let mut filenames = use_signal(|| {
+        file_paths_context.kubeconfig_paths.clone()
+    });
+    
     // State to manage the dialog: Option<original_filename>
     let mut dialog_state = use_signal::<Option<String>>(|| None);
     // State for resetting the input element via key
     let mut input_key = use_signal(|| 0);
     // State to track the currently selected context name
-    let mut selected_context = use_signal(|| String::new()); // Initialize empty or with a default
+    let mut selected_context = use_signal(|| {
+        // If file paths are provided, select the first one by default
+        file_paths_context.kubeconfig_paths.first().cloned().unwrap_or_default()
+    });
+
+    // Function to add a new file path
+    let add_file_path = {
+        let mut filenames = filenames.clone();
+        move |new_path: String| {
+            let mut current_files = filenames.write();
+            if !current_files.contains(&new_path) {
+                current_files.push(new_path);
+            }
+        }
+    };
+
+    // Effect to update filenames when context changes
+    use_effect({
+        let kubeconfig_paths = file_paths_context.kubeconfig_paths.clone();
+        let mut filenames = filenames.clone();
+        move || {
+            if !kubeconfig_paths.is_empty() {
+                let mut current_files = filenames.write();
+                // Merge new paths with existing ones, avoiding duplicates
+                for path in &kubeconfig_paths {
+                    if !current_files.contains(path) {
+                        current_files.push(path.clone());
+                    }
+                }
+            }
+        }
+    });
 
     rsx! {
         document::Link { rel: "stylesheet", href: NAVBAR_CSS }
@@ -77,29 +114,48 @@ pub fn Navbar() -> Element {
                     // Add Cluster Management Section
                     div { class: "nav-group",
                         span { class: "nav-group-title", "CLUSTER MANAGEMENT" }
-                        // Updated cluster selector
+                        // Updated cluster selector with better file path display
                         div { class: "cluster-selector",
                             label { r#for: "cluster-select", class: "sr-only", "Select Cluster" }
                             select {
                                 id: "cluster-select",
                                 name: "cluster",
-                                class: "cluster-dropdown", // Use appropriate class from navbar.css if needed
-                                value: "{selected_context}", // Bind select value to state
+                                class: "cluster-dropdown",
+                                value: "{selected_context}",
                                 onchange: move |evt| {
                                     let new_selection = evt.value();
                                     tracing::info!("Selected context: {}", new_selection);
                                     selected_context.set(new_selection);
                                     // TODO: Add logic to switch context based on selection
                                 },
-                                // Default/Placeholder option (optional)
-                                option { value: "", disabled: true, hidden: !selected_context.read().is_empty(), "Select Context" }
+                                // Default/Placeholder option
+                                option { 
+                                    value: "", 
+                                    disabled: true, 
+                                    selected: selected_context.read().is_empty(),
+                                    "Select kubeconfig file"
+                                }
                                 // Dynamically generate options from filenames signal
                                 {
-                                    filenames.read().iter().map(|name| rsx! {
-                                        option { key: "{name}", value: "{name}", "{name}" }
+                                    filenames.read().iter().map(|filepath| {
+                                        let display_name = filepath.split('/').last().unwrap_or(filepath);
+                                        rsx! {
+                                            option { 
+                                                key: "{filepath}", 
+                                                value: "{filepath}",
+                                                title: "{filepath}", // Show full path on hover
+                                                "{display_name}"
+                                            }
+                                        }
                                     })
                                 }
                             }
+                            // Add a small info text showing the count
+                            {(!filenames.read().is_empty()).then(|| rsx! {
+                                div { class: "file-count-info",
+                                    "{filenames.read().len()} kubeconfig file(s) loaded"
+                                }
+                            })}
                         }
 
                         // Hidden file input for kubeconfig

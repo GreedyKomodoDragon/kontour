@@ -117,6 +117,14 @@
   margin-bottom: 8px; /* Add space below the dropdown */
 }
 
+.file-count-info {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 4px 8px 0 8px;
+  text-align: center;
+  font-style: italic;
+}
+
 .cluster-dropdown {
   width: 100%;
   padding: 8px 10px;

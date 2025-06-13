@@ -12,6 +12,12 @@ mod k8s;
 mod views;
 mod utils;
 
+// Context for sharing file paths
+#[derive(Clone, Default)]
+pub struct FilePathsContext {
+    pub kubeconfig_paths: Vec<String>,
+}
+
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
 enum Route {
@@ -106,6 +112,11 @@ fn App() -> Element {
         Some(Ok(client)) => {
             // Successful
             use_context_provider(|| client.clone());
+            
+            // Provide example file paths context
+            use_context_provider(|| FilePathsContext {
+                kubeconfig_paths: vec![],
+            });
 
             rsx! {
                 document::Link { rel: "icon", href: FAVICON }
