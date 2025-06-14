@@ -1,9 +1,5 @@
 use dioxus::prelude::*;
 use dioxus_desktop::{Config, WindowBuilder};
-use kube::Client;
-use std::path::Path;
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
 use views::{
     ConfigMaps, CreatePod, CronJobs, DaemonSets, Deployments, Home, Ingresses, Jobs, Namespaces, Navbar,
     Nodes, Pods, Pvcs, Secrets, Services, StatefulSets, CreateNamespace, CreateDeployment, CreateStatefulSet,
@@ -11,99 +7,13 @@ use views::{
 };
 
 mod components;
+mod contexts;
 mod k8s;
 mod views;
 mod utils;
 
-// Global storage for kubeconfig files content
-static KUBECONFIG_STORAGE: std::sync::LazyLock<Arc<Mutex<HashMap<String, String>>>> = 
-    std::sync::LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
-
-// Context for sharing file paths
-#[derive(Clone, Default)]
-pub struct FilePathsContext {
-    pub kubeconfig_paths: Signal<Vec<String>>,
-}
-
-// Context for managing file content storage
-#[derive(Clone)]
-pub struct KubeconfigStorage {
-    storage: Arc<Mutex<HashMap<String, String>>>,
-}
-
-impl Default for KubeconfigStorage {
-    fn default() -> Self {
-        Self {
-            storage: KUBECONFIG_STORAGE.clone(),
-        }
-    }
-}
-
-impl KubeconfigStorage {
-    pub fn store_content(&self, name: String, content: String) {
-        if let Ok(mut storage) = self.storage.lock() {
-            storage.insert(name, content);
-        }
-    }
-
-    pub fn get_content(&self, name: &str) -> Option<String> {
-        if let Ok(storage) = self.storage.lock() {
-            storage.get(name).cloned()
-        } else {
-            None
-        }
-    }
-}
-
-// Context for managing Kubernetes client reload
-#[derive(Clone)]
-pub struct ClientReloadContext {
-    pub current_path: Signal<String>,
-}
-
-// Function to create a client from a kubeconfig path
-async fn create_client_from_path(path: &str, storage: &KubeconfigStorage) -> Result<Client, Box<dyn std::error::Error + Send + Sync>> {
-    if path == "default" {
-        // Use default kubeconfig
-        Client::try_default().await.map_err(|e| e.into())
-    } else if Path::new(path).exists() {
-        // Load from specific file - set the KUBECONFIG environment variable temporarily
-        let original_kubeconfig = std::env::var("KUBECONFIG").ok();
-        std::env::set_var("KUBECONFIG", path);
-        
-        let result = Client::try_default().await;
-        
-        // Restore original KUBECONFIG if it existed, or remove it
-        match original_kubeconfig {
-            Some(original) => std::env::set_var("KUBECONFIG", original),
-            None => std::env::remove_var("KUBECONFIG"),
-        }
-        
-        result.map_err(|e| e.into())
-    } else if let Some(content) = storage.get_content(path) {
-        // Load from stored content by writing to a temporary file
-        let temp_dir = std::env::temp_dir();
-        let temp_file = temp_dir.join(format!("kubeconfig_{}.yaml", path.replace("/", "_")));
-        
-        std::fs::write(&temp_file, content)?;
-        
-        let original_kubeconfig = std::env::var("KUBECONFIG").ok();
-        std::env::set_var("KUBECONFIG", temp_file.to_string_lossy().to_string());
-        
-        let result = Client::try_default().await;
-        
-        // Clean up
-        let _ = std::fs::remove_file(&temp_file);
-        match original_kubeconfig {
-            Some(original) => std::env::set_var("KUBECONFIG", original),
-            None => std::env::remove_var("KUBECONFIG"),
-        }
-        
-        result.map_err(|e| e.into())
-    } else {
-        Err(format!("Kubeconfig not found: {}", path).into())
-    }
-}
+use contexts::{FilePathsContext, KubeconfigStorage, ClientReloadContext, create_client_from_path};
+use utils::config;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -170,10 +80,21 @@ fn main() {
 #[component]
 fn App() -> Element {
     // Signal to track the current kubeconfig path
-    let current_kubeconfig_path = use_signal(|| "default".to_string());
+    let current_kubeconfig_path = use_signal(|| config::DEFAULT_KUBECONFIG.to_string());
     
-    // Create kubeconfig storage
+    // Create kubeconfig storage - ALWAYS at top level
     let kubeconfig_storage = use_context_provider(|| KubeconfigStorage::default());
+    
+    // ALWAYS provide client reload context - BEFORE any conditional logic
+    use_context_provider(|| ClientReloadContext {
+        current_path: current_kubeconfig_path,
+    });
+    
+    // ALWAYS provide file paths context - BEFORE any conditional logic  
+    let kubeconfig_paths = use_signal(|| vec![config::DEFAULT_KUBECONFIG.to_string()]);
+    use_context_provider(|| FilePathsContext {
+        kubeconfig_paths,
+    });
 
     // Resource for managing the Kubernetes client based on the current path
     let client_resource = use_resource({
@@ -183,6 +104,7 @@ fn App() -> Element {
             let storage = storage.clone();
             async move { 
                 create_client_from_path(&current_path, &storage).await
+                    .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)
             }
         }
     });
@@ -195,37 +117,46 @@ fn App() -> Element {
             return rsx!(div { "Loading Kubernetes client..." });
         }
         Some(Err(err)) => {
-            // Failed to initialize kube client
+            // Failed to initialize kube client - show error and empty UI
+            // Don't use the router when there's no client
             rsx! {
-                div {
-                    // Show error banner
+                document::Link { rel: "icon", href: FAVICON }
+                document::Link { rel: "stylesheet", href: MAIN_CSS }
+                document::Link { rel: "stylesheet", href: TAILWIND_CSS }
+                
+                div { class: "error-container",
+                    // Error banner at the top
                     div {
                         class: "error-banner",
-                        "⚠️ Failed to initialize Kubernetes client: {err}. Some features may not work."
+                        style: "background-color: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 1rem; margin: 1rem; border-radius: 0.5rem;",
+                        "⚠️ Failed to connect to Kubernetes cluster: {err}"
                     }
-
-                    document::Link { rel: "icon", href: FAVICON }
-                    document::Link { rel: "stylesheet", href: MAIN_CSS }
-                    document::Link { rel: "stylesheet", href: TAILWIND_CSS }
-
-                    Router::<Route> {}
+                    
+                    // Show navbar and empty content (no router)
+                    div {
+                        style: "display: flex; height: 100vh;",
+                        // Show navbar for file management
+                        Navbar {}
+                        
+                        // Empty main content area with message
+                        div {
+                            style: "flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 2rem;",
+                            h2 { 
+                                style: "color: #6b7280; font-size: 1.5rem; margin-bottom: 1rem;",
+                                "No Kubernetes Connection" 
+                            }
+                            p { 
+                                style: "color: #9ca3af; text-align: center; max-width: 500px;",
+                                "Please select a valid kubeconfig file using the dropdown above, or fix the current configuration to continue."
+                            }
+                        }
+                    }
                 }
             }
         }
         Some(Ok(client)) => {
-            // Successful - provide contexts
+            // Successful - provide the client context and show normal UI
             use_context_provider(|| client.clone());
-            
-            // Provide client reload context
-            use_context_provider(|| ClientReloadContext {
-                current_path: current_kubeconfig_path,
-            });
-            
-            // Provide file paths context with a signal
-            let kubeconfig_paths = use_signal(|| vec!["default".to_string()]);
-            use_context_provider(|| FilePathsContext {
-                kubeconfig_paths,
-            });
 
             rsx! {
                 document::Link { rel: "icon", href: FAVICON }

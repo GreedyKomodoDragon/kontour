@@ -12,11 +12,9 @@ pub fn Home() -> Element {
     let events = use_signal(Vec::<Event>::new);
     let resources = use_signal(|| ClusterResourceUsage::default());
 
-    // Fetch recent events
     use_effect({
-        let client = client.clone();
         let mut events = events.clone();
-
+        let client = client.clone();
         move || {
             spawn({
                 let client = client.clone();
@@ -27,11 +25,10 @@ pub fn Home() -> Element {
             });
         }
     });
-    // Fetch cluster resources
+    
     use_effect({
-        let client = client.clone();
         let mut resources = resources.clone();
-
+        let client = client.clone();
         move || {
             spawn({
                 let client = client.clone();

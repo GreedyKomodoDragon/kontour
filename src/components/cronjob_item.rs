@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use k8s_openapi::api::batch::v1::CronJob;
-use crate::utils::calculate_age;
+use crate::utils::calculate_age_from_time;
 
 #[derive(Props, PartialEq, Clone)]
 pub struct CronJobItemProps {
@@ -38,7 +38,7 @@ pub fn CronJobItem(props: CronJobItemProps) -> Element {
         suspend: props.cronjob.spec.as_ref().and_then(|s| s.suspend).unwrap_or(false),
         last_schedule: props.cronjob.status.as_ref().and_then(|s| s.last_schedule_time.as_ref().map(|t| t.0.to_string())),
         active_jobs: props.cronjob.status.as_ref().and_then(|s| s.active.as_ref()).map(|a| a.len() as i32).unwrap_or(0),
-        age: calculate_age(props.cronjob.metadata.creation_timestamp.as_ref()),
+        age: calculate_age_from_time(props.cronjob.metadata.creation_timestamp.as_ref()),
         labels: props.cronjob.metadata.labels.as_ref()
             .map(|labels| labels.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
             .unwrap_or_default(),

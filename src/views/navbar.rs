@@ -1,7 +1,9 @@
-use crate::{Route, FilePathsContext, ClientReloadContext, KubeconfigStorage};
+use crate::{Route, contexts::{FilePathsContext, ClientReloadContext, KubeconfigStorage}};
 // Import the new dialog component
 use crate::components::kubeconfig_name_dialog::KubeconfigNameDialog;
+use crate::utils::file_utils;
 use dioxus::{logger::tracing, prelude::*};
+use kube::Client;
 
 const NAVBAR_CSS: Asset = asset!("/assets/styling/navbar.css");
 
@@ -33,6 +35,9 @@ pub fn Navbar() -> Element {
     
     // Get kubeconfig storage
     let kubeconfig_storage = use_context::<KubeconfigStorage>();
+    
+    // Check if we have a Kubernetes client available (optional, might not exist in error state)
+    let has_client = try_use_context::<Client>().is_some();
     
     // Use the signal from context instead of local state
     let mut filenames = file_paths_context.kubeconfig_paths;
@@ -73,15 +78,27 @@ pub fn Navbar() -> Element {
                     if let Some(name) = result {
                         tracing::info!("Kubeconfig context named: {}", name);
                         
-                        // Store the file content with the user-provided name
-                        kubeconfig_storage.store_content(name.clone(), file_content.clone());
-                        
-                        // Add to the global file paths
-                        let mut current_files = filenames.write();
-                        if !current_files.contains(&name) {
-                            current_files.push(name.clone());
-                            // Set the newly added context as selected
-                            selected_context.set(name);
+                        // Save the file content to persistent storage and get the file path
+                        match file_utils::save_kubeconfig_file(&name, &file_content) {
+                            Ok(file_path) => {
+                                // Store the file path with the user-provided name
+                                if let Err(e) = kubeconfig_storage.store_file_path(name.clone(), file_path) {
+                                    tracing::error!("Failed to store kubeconfig file path: {}", e);
+                                    return;
+                                }
+                                
+                                // Add to the global file paths
+                                let mut current_files = filenames.write();
+                                if !current_files.contains(&name) {
+                                    current_files.push(name.clone());
+                                    // Set the newly added context as selected
+                                    selected_context.set(name);
+                                }
+                            }
+                            Err(e) => {
+                                tracing::error!("Failed to save kubeconfig file: {}", e);
+                                return;
+                            }
                         }
                     } else {
                         tracing::debug!("Kubeconfig name dialog cancelled.");
@@ -198,107 +215,124 @@ pub fn Navbar() -> Element {
                             "Add Kubeconfig"
                         }
                     }
-                    // Existing Nav Groups (Restored)
-                    div { class: "nav-group",
-                        span { class: "nav-group-title", "CLUSTER" }
-                        Link {
-                            to: Route::Home {},
-                            class: "nav-overview",
-                            img { src: "{OVERVIEW}", alt: "", class: "nav-icon" }
-                            "Overview"
+                    // Navigation links - only show when client is available
+                    if has_client {
+                        // Existing Nav Groups (Restored)
+                        div { class: "nav-group",
+                            span { class: "nav-group-title", "CLUSTER" }
+                            Link {
+                                to: Route::Home {},
+                                class: "nav-overview",
+                                img { src: "{OVERVIEW}", alt: "", class: "nav-icon" }
+                                "Overview"
+                            }
+                            Link {
+                                to: Route::Insights {},
+                                class: "nav-insights",
+                                img { src: "{INSIGHTS}", alt: "", class: "nav-icon" }
+                                "Insights"
+                            }
+                            Link {
+                                to: Route::Nodes {},
+                                class: "nav-nodes",
+                                img { src: "{NODES}", alt: "", class: "nav-icon" }
+                                "Nodes"
+                            }
+                            Link {
+                                to: Route::Namespaces {},
+                                class: "nav-namespaces",
+                                img { src: "{NAMESPACE}", alt: "", class: "nav-icon" }
+                                "Namespaces"
+                            }
                         }
-                        Link {
-                            to: Route::Insights {},
-                            class: "nav-insights",
-                            img { src: "{INSIGHTS}", alt: "", class: "nav-icon" }
-                            "Insights"
-                        }
-                        Link {
-                            to: Route::Nodes {},
-                            class: "nav-nodes",
-                            img { src: "{NODES}", alt: "", class: "nav-icon" }
-                            "Nodes"
-                        }
-                        Link {
-                            to: Route::Namespaces {},
-                            class: "nav-namespaces",
-                            img { src: "{NAMESPACE}", alt: "", class: "nav-icon" }
-                            "Namespaces"
-                        }
-                    }
-                    div { class: "nav-group",
-                        span { class: "nav-group-title", "WORKLOADS" }
-                        Link {
-                            to: Route::Pods {},
-                            class: "nav-pods",
-                            img { src: "{POD}", alt: "", class: "nav-icon" }
-                            "Pods"
-                        }
-                        Link {
-                            to: Route::Deployments {},
-                            class: "nav-deployments",
-                            img { src: "{DEPLOYMENT}", alt: "", class: "nav-icon" }
-                            "Deployments"
-                        }
-                        Link {
-                            to: Route::StatefulSets {},
-                            class: "nav-statefulsets",
-                            img { src: "{STATEFULSETS}", alt: "", class: "nav-icon" }
-                            "StatefulSets"
-                        }
-                        Link {
-                            to: Route::DaemonSets {},
-                            class: "nav-daemonsets",
-                            img { src: "{DAEMONSETS}", alt: "", class: "nav-icon" }
-                            "DaemonSets"
-                        }
-                        Link {
-                            to: Route::CronJobs {},
-                            class: "nav-cronjobs",
-                            img { src: "{CRONJOB}", alt: "", class: "nav-icon" }
-                            "CronJobs"
-                        }
-                        Link {
-                            to: Route::Jobs {},
-                            class: "nav-jobs",
-                            img { src: "{JOB}", alt: "", class: "nav-icon" }
-                            "Jobs"
+                    } else {
+                        // Show message when no client is available
+                        div { class: "nav-group",
+                            div { 
+                                style: "padding: 1rem; color: #9ca3af; text-align: center; font-size: 0.875rem;",
+                                "🔌 No cluster connection"
+                            }
+                            div { 
+                                style: "padding: 0 1rem; color: #6b7280; text-align: center; font-size: 0.75rem; line-height: 1.4;",
+                                "Select a valid kubeconfig above to enable navigation"
+                            }
                         }
                     }
-                    div { class: "nav-group",
-                        span { class: "nav-group-title", "NETWORK" }
-                        Link {
-                            to: Route::Services {},
-                            class: "nav-services",
-                            img { src: "{SERVICE}", alt: "", class: "nav-icon" }
-                            "Services"
+                    if has_client {
+                        div { class: "nav-group",
+                            span { class: "nav-group-title", "WORKLOADS" }
+                            Link {
+                                to: Route::Pods {},
+                                class: "nav-pods",
+                                img { src: "{POD}", alt: "", class: "nav-icon" }
+                                "Pods"
+                            }
+                            Link {
+                                to: Route::Deployments {},
+                                class: "nav-deployments",
+                                img { src: "{DEPLOYMENT}", alt: "", class: "nav-icon" }
+                                "Deployments"
+                            }
+                            Link {
+                                to: Route::StatefulSets {},
+                                class: "nav-statefulsets",
+                                img { src: "{STATEFULSETS}", alt: "", class: "nav-icon" }
+                                "StatefulSets"
+                            }
+                            Link {
+                                to: Route::DaemonSets {},
+                                class: "nav-daemonsets",
+                                img { src: "{DAEMONSETS}", alt: "", class: "nav-icon" }
+                                "DaemonSets"
+                            }
+                            Link {
+                                to: Route::CronJobs {},
+                                class: "nav-cronjobs",
+                                img { src: "{CRONJOB}", alt: "", class: "nav-icon" }
+                                "CronJobs"
+                            }
+                            Link {
+                                to: Route::Jobs {},
+                                class: "nav-jobs",
+                                img { src: "{JOB}", alt: "", class: "nav-icon" }
+                                "Jobs"
+                            }
                         }
-                        Link {
-                            to: Route::Ingresses {},
-                            class: "nav-ingress",
-                            img { src: "{INGRESS}", alt: "", class: "nav-icon" }
-                            "Ingress"
+                        div { class: "nav-group",
+                            span { class: "nav-group-title", "NETWORK" }
+                            Link {
+                                to: Route::Services {},
+                                class: "nav-services",
+                                img { src: "{SERVICE}", alt: "", class: "nav-icon" }
+                                "Services"
+                            }
+                            Link {
+                                to: Route::Ingresses {},
+                                class: "nav-ingress",
+                                img { src: "{INGRESS}", alt: "", class: "nav-icon" }
+                                "Ingress"
+                            }
                         }
-                    }
-                    div { class: "nav-group",
-                        span { class: "nav-group-title", "STORAGE" }
-                        Link {
-                            to: Route::Pvcs {},
-                            class: "nav-pvcs",
-                            img { src: "{PVC}", alt: "", class: "nav-icon" }
-                            "Persistent Volume Claims"
-                        }
-                        Link {
-                            to: Route::ConfigMaps {},
-                            class: "nav-configmaps",
-                            img { src: "{CONFIGMAP}", alt: "", class: "nav-icon" }
-                            "Config Maps"
-                        }
-                        Link {
-                            to: Route::Secrets {},
-                            class: "nav-secrets",
-                            img { src: "{SECRET}", alt: "", class: "nav-icon" }
-                            "Secrets"
+                        div { class: "nav-group",
+                            span { class: "nav-group-title", "STORAGE" }
+                            Link {
+                                to: Route::Pvcs {},
+                                class: "nav-pvcs",
+                                img { src: "{PVC}", alt: "", class: "nav-icon" }
+                                "Persistent Volume Claims"
+                            }
+                            Link {
+                                to: Route::ConfigMaps {},
+                                class: "nav-configmaps",
+                                img { src: "{CONFIGMAP}", alt: "", class: "nav-icon" }
+                                "Config Maps"
+                            }
+                            Link {
+                                to: Route::Secrets {},
+                                class: "nav-secrets",
+                                img { src: "{SECRET}", alt: "", class: "nav-icon" }
+                                "Secrets"
+                            }
                         }
                     }
                     // div { class: "nav-group",
@@ -312,10 +346,12 @@ pub fn Navbar() -> Element {
                     // }
                 }
             }
-            // Main Content Outlet (Restored)
-            div {
-                class: "main-content",
-                Outlet::<Route> {}
+            // Main Content Outlet - only render when client is available
+            if has_client {
+                div {
+                    class: "main-content",
+                    Outlet::<Route> {}
+                }
             }
         }
     }

@@ -178,10 +178,7 @@
     color: rgb(234, 179, 8);
 }
 
-.status-running, .status-true {
-    background: rgba(74, 222, 128, 0.2);
-    color: rgb(74, 222, 128);
-}
+
 
 .status-unknown, .status-false {
     background: rgba(148, 163, 184, 0.2);
