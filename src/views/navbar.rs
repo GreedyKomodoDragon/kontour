@@ -1,4 +1,4 @@
-use crate::{Route, FilePathsContext};
+use crate::{Route, FilePathsContext, ClientReloadContext, KubeconfigStorage};
 // Import the new dialog component
 use crate::components::kubeconfig_name_dialog::KubeconfigNameDialog;
 use dioxus::{logger::tracing, prelude::*};
@@ -28,67 +28,61 @@ pub fn Navbar() -> Element {
     // Get file paths from context - provide default if not available
     let file_paths_context = use_context::<FilePathsContext>();
     
-    // Signal to store a list of added context names - initialize with provided file paths
-    let mut filenames = use_signal(|| {
-        file_paths_context.kubeconfig_paths.clone()
-    });
+    // Get client reload context
+    let client_reload_context = use_context::<ClientReloadContext>();
     
-    // State to manage the dialog: Option<original_filename>
-    let mut dialog_state = use_signal::<Option<String>>(|| None);
+    // Get kubeconfig storage
+    let kubeconfig_storage = use_context::<KubeconfigStorage>();
+    
+    // Use the signal from context instead of local state
+    let mut filenames = file_paths_context.kubeconfig_paths;
+    
+    // State to manage the dialog: Option<(original_filename, file_content)>
+    let mut dialog_state = use_signal::<Option<(String, String)>>(|| None);
     // State for resetting the input element via key
     let mut input_key = use_signal(|| 0);
     // State to track the currently selected context name
     let mut selected_context = use_signal(|| {
         // If file paths are provided, select the first one by default
-        file_paths_context.kubeconfig_paths.first().cloned().unwrap_or_default()
+        let paths = filenames.read();
+        paths.first().cloned().unwrap_or_default()
     });
 
-    // Function to add a new file path
-    let add_file_path = {
-        let mut filenames = filenames.clone();
-        move |new_path: String| {
-            let mut current_files = filenames.write();
-            if !current_files.contains(&new_path) {
-                current_files.push(new_path);
-            }
-        }
-    };
-
-    // Effect to update filenames when context changes
+    // Effect to reload client when selected context changes
     use_effect({
-        let kubeconfig_paths = file_paths_context.kubeconfig_paths.clone();
-        let mut filenames = filenames.clone();
+        let mut current_path = client_reload_context.current_path;
         move || {
-            if !kubeconfig_paths.is_empty() {
-                let mut current_files = filenames.write();
-                // Merge new paths with existing ones, avoiding duplicates
-                for path in &kubeconfig_paths {
-                    if !current_files.contains(path) {
-                        current_files.push(path.clone());
-                    }
-                }
+            let new_path = selected_context();
+            if !new_path.is_empty() {
+                tracing::info!("Context changed to: {}", new_path);
+                current_path.set(new_path);
             }
         }
     });
+
+    // Effect to update filenames when context changes - removed since we're using global context now
 
     rsx! {
         document::Link { rel: "stylesheet", href: NAVBAR_CSS }
 
         // Conditionally render the dialog
-        if let Some(original_filename) = dialog_state() {
+        if let Some((original_filename, file_content)) = dialog_state() {
             KubeconfigNameDialog {
                 original_filename: original_filename.clone(),
                 on_close: move |result: Option<String>| {
                     if let Some(name) = result {
                         tracing::info!("Kubeconfig context named: {}", name);
+                        
+                        // Store the file content with the user-provided name
+                        kubeconfig_storage.store_content(name.clone(), file_content.clone());
+                        
+                        // Add to the global file paths
                         let mut current_files = filenames.write();
-                        // Add the name if it doesn't already exist
                         if !current_files.contains(&name) {
                             current_files.push(name.clone());
-                            // Optionally, set the newly added context as selected
+                            // Set the newly added context as selected
                             selected_context.set(name);
                         }
-                        // TODO: Process file content associated with original_filename and store using 'name'
                     } else {
                         tracing::debug!("Kubeconfig name dialog cancelled.");
                     }
@@ -124,9 +118,10 @@ pub fn Navbar() -> Element {
                                 value: "{selected_context}",
                                 onchange: move |evt| {
                                     let new_selection = evt.value();
-                                    tracing::info!("Selected context: {}", new_selection);
-                                    selected_context.set(new_selection);
-                                    // TODO: Add logic to switch context based on selection
+                                    tracing::info!("User selected context: {}", new_selection);
+                                    selected_context.set(new_selection.clone());
+                                    
+                                    // The effect will automatically trigger client reload
                                 },
                                 // Default/Placeholder option
                                 option { 
@@ -176,11 +171,19 @@ pub fn Navbar() -> Element {
                                         let files = file_engine.files();
                                         if let Some(file_name) = files.first() {
                                             tracing::debug!("Selected file: {}", file_name);
-                                            // Set state to show the dialog with the original filename
-                                            dialog_state.set(Some(file_name.clone()));
-
-                                            // NOTE: File content reading would happen here or after naming
-                                            // let file_content = file_engine.read_file(file_name).await;
+                                            
+                                            // Read the file content
+                                            if let Some(content) = file_engine.read_file(file_name).await {
+                                                // Store the file content temporarily with the original filename
+                                                let content_str = String::from_utf8_lossy(&content).to_string();
+                                                
+                                                // Show the dialog with both filename and content
+                                                dialog_state.set(Some((file_name.clone(), content_str)));
+                                                
+                                                tracing::info!("File read successfully: {} bytes", content.len());
+                                            } else {
+                                                tracing::error!("Failed to read file {}", file_name);
+                                            }
                                         }
                                     }
                                 });
