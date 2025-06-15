@@ -61,33 +61,38 @@ impl IngressFetcher {
 
 #[component]
 pub fn Ingresses() -> Element {
-    let client = use_context::<Client>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let navigate = use_navigator();
 
     let mut selected_namespace = use_signal(|| "All".to_string());
     let mut search_query = use_signal(String::new);
     let ingresses = use_signal(|| Vec::<Ingress>::new());
 
-    let fetcher = IngressFetcher {
-        client: client.clone(),
-        ingresses: ingresses.clone(),
-    };
-
     use_effect({
-        let fetcher = fetcher.clone();
         move || {
-            let ns = selected_namespace();
-            let query = search_query();
-            fetcher.fetch(ns, query);
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = IngressFetcher {
+                    client: client.clone(),
+                    ingresses: ingresses.clone(),
+                };
+                let ns = selected_namespace();
+                let query = search_query();
+                fetcher.fetch(ns, query);
+            }
         }
     });
 
     let refresh = {
-        let fetcher = fetcher.clone();
         move |_| {
-            let ns = selected_namespace();
-            let query = search_query();
-            fetcher.fetch(ns, query);
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = IngressFetcher {
+                    client: client.clone(),
+                    ingresses: ingresses.clone(),
+                };
+                let ns = selected_namespace();
+                let query = search_query();
+                fetcher.fetch(ns, query);
+            }
         }
     };
 

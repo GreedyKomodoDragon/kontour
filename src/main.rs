@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_desktop::{Config, WindowBuilder};
+use kube::Client;
 use views::{
     ConfigMaps, CreatePod, CronJobs, DaemonSets, Deployments, Home, Ingresses, Jobs, Namespaces, Navbar,
     Nodes, Pods, Pvcs, Secrets, Services, StatefulSets, CreateNamespace, CreateDeployment, CreateStatefulSet,
@@ -101,70 +102,110 @@ fn App() -> Element {
         let storage = kubeconfig_storage.clone();
         move || {
             let current_path = current_kubeconfig_path();
+            println!("DEBUG: Client resource triggering with path: '{}'", current_path);
             let storage = storage.clone();
             async move { 
-                create_client_from_path(&current_path, &storage).await
-                    .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>)
+                println!("DEBUG: About to call create_client_from_path with: '{}'", current_path);
+                let result = create_client_from_path(&current_path, &storage).await
+                    .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Send + Sync>);
+                match &result {
+                    Ok(_) => println!("DEBUG: create_client_from_path result: Ok(client)"),
+                    Err(e) => println!("DEBUG: create_client_from_path result: Err({})", e),
+                }
+                result
             }
         }
     });
 
-    let client_ref = client_resource.read();
-
-    match &*client_ref {
-        None => {
-            // Still loading
-            return rsx!(div { "Loading Kubernetes client..." });
+    // Create a reactive client signal that updates when the resource state changes
+    let client_signal = use_signal(|| None::<Client>);
+    
+    // Update the client signal whenever the resource state changes
+    use_effect({
+        let mut client_signal = client_signal.clone();
+        let client_resource = client_resource.clone();
+        move || {
+            let client_ref = client_resource.read();
+            let client_option: Option<Client> = match &*client_ref {
+                None => None, // Still loading
+                Some(Err(_)) => None, // Error - no client available
+                Some(Ok(client)) => Some(client.clone()), // Success - client available
+            };
+            client_signal.set(client_option);
         }
-        Some(Err(err)) => {
-            // Failed to initialize kube client - show error and empty UI
-            // Don't use the router when there's no client
-            rsx! {
-                document::Link { rel: "icon", href: FAVICON }
-                document::Link { rel: "stylesheet", href: MAIN_CSS }
-                document::Link { rel: "stylesheet", href: TAILWIND_CSS }
-                
-                div { class: "error-container",
-                    // Error banner at the top
-                    div {
-                        class: "error-banner",
-                        style: "background-color: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 1rem; margin: 1rem; border-radius: 0.5rem;",
-                        "⚠️ Failed to connect to Kubernetes cluster: {err}"
+    });
+    
+    use_context_provider(move || client_signal);
+
+    // Read the current client resource state for conditional rendering
+    let client_ref = client_resource.read();
+    match &*client_ref {
+        None => println!("DEBUG: Client resource state: None (loading)"),
+        Some(Ok(_)) => println!("DEBUG: Client resource state: Some(Ok(_)) (success)"),
+        Some(Err(e)) => println!("DEBUG: Client resource state: Some(Err(_)) (error: {})", e),
+    }
+
+    rsx! {
+        document::Link { rel: "icon", href: FAVICON }
+        document::Link { rel: "stylesheet", href: MAIN_CSS }
+        document::Link { rel: "stylesheet", href: TAILWIND_CSS }
+
+        // Show loading or error banners based on client state
+        if let None = &*client_ref {
+            // Loading banner
+            div {
+                class: "loading-banner",
+                style: "background: linear-gradient(90deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #3b82f6; color: #1e40af; padding: 1.5rem; margin: 0; border-radius: 0; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); font-weight: 600;",
+                div { 
+                    style: "display: flex; align-items: center; gap: 12px;",
+                    span { 
+                        style: "font-size: 1.5rem;", 
+                        "🔄" 
                     }
-                    
-                    // Show navbar and empty content (no router)
                     div {
-                        style: "display: flex; height: 100vh;",
-                        // Show navbar for file management
-                        Navbar {}
-                        
-                        // Empty main content area with message
-                        div {
-                            style: "flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 2rem;",
-                            h2 { 
-                                style: "color: #6b7280; font-size: 1.5rem; margin-bottom: 1rem;",
-                                "No Kubernetes Connection" 
-                            }
-                            p { 
-                                style: "color: #9ca3af; text-align: center; max-width: 500px;",
-                                "Please select a valid kubeconfig file using the dropdown above, or fix the current configuration to continue."
-                            }
+                        div { 
+                            style: "font-size: 1.1rem; margin-bottom: 4px;",
+                            "Connecting to Kubernetes cluster..." 
+                        }
+                        div { 
+                            style: "font-size: 0.9rem; color: #1d4ed8; font-weight: normal;",
+                            "Loading kubeconfig and establishing connection" 
                         }
                     }
                 }
             }
         }
-        Some(Ok(client)) => {
-            // Successful - provide the client context and show normal UI
-            use_context_provider(|| client.clone());
-
-            rsx! {
-                document::Link { rel: "icon", href: FAVICON }
-                document::Link { rel: "stylesheet", href: MAIN_CSS }
-                document::Link { rel: "stylesheet", href: TAILWIND_CSS }
-
-                Router::<Route> {}
+        
+        if let Some(Err(err)) = &*client_ref {
+            // Error banner
+            div {
+                class: "error-banner",
+                style: "background: linear-gradient(90deg, #fef2f2 0%, #fee2e2 100%); border: 2px solid #dc2626; color: #7f1d1d; padding: 1.5rem; margin: 0; border-radius: 0; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); font-weight: 600;",
+                div { 
+                    style: "display: flex; align-items: center; gap: 12px;",
+                    span { 
+                        style: "font-size: 1.5rem;", 
+                        "⚠️" 
+                    }
+                    div {
+                        div { 
+                            style: "font-size: 1.1rem; margin-bottom: 4px;",
+                            "Failed to connect to Kubernetes cluster" 
+                        }
+                        div { 
+                            style: "font-size: 0.9rem; color: #991b1b; font-weight: normal;",
+                            "Error: {err}" 
+                        }
+                    }
+                }
             }
         }
+        
+        // Add top margin when banner is shown
+        if !matches!(&*client_ref, Some(Ok(_))) {
+            div { style: "margin-top: 6rem;" }
+        }
+
+        Router::<Route> {}
     }
 }

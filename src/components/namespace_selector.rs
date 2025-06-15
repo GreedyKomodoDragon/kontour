@@ -10,17 +10,15 @@ pub struct NamespaceSelectorProps {
 
 #[component]
 pub fn NamespaceSelector(props: NamespaceSelectorProps) -> Element {
-    let client_option = use_context::<Option<Client>>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
 
     // Signal for holding namespaces fetched from Kubernetes
     let mut namespaces = use_signal(|| Vec::<String>::new());
 
-    // Fetch namespaces using `use_effect` only if we have a client
-    if let Some(client) = client_option {
-        use_effect({
-            let client = client.clone();
-            
-            move || {
+    // Fetch namespaces using `use_effect` - always call the hook but handle conditionals inside
+    use_effect({        
+        move || {
+            if let Some(client) = &*client_signal.read() {
                 let client = client.clone();
                 spawn(async move {
                     let ns_api: Api<Namespace> = Api::all(client);
@@ -38,16 +36,12 @@ pub fn NamespaceSelector(props: NamespaceSelectorProps) -> Element {
                         }
                     }
                 });
-            }
-        });
-    } else {
-        // Set default namespaces when no client is available
-        use_effect({
-            move || {
+            } else {
+                // Set default namespaces when no client is available
                 namespaces.set(vec!["All".to_string()]);
             }
-        });
-    }
+        }
+    });
 
     rsx! {
         select {

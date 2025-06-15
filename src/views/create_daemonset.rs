@@ -30,7 +30,7 @@ struct KeyValuePair {
 
 #[component]
 pub fn CreateDaemonSet() -> Element {
-    let client = use_context::<Client>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let navigate = use_navigator();
     
     let mut name = use_signal(String::new);
@@ -87,7 +87,9 @@ pub fn CreateDaemonSet() -> Element {
         let daemonset_name = name.clone();
         let namespace = namespace();
         let image = image();
-        let client = client.clone();
+        
+        if let Some(client) = &*client_signal.read() {
+            let client = client.clone();
 
         // Basic validation
         if name.is_empty() {
@@ -230,6 +232,9 @@ pub fn CreateDaemonSet() -> Element {
                 }
             }
         });
+        } else {
+            error.set(Some("Kubernetes client not available".to_string()));
+        }
     };
 
     rsx! {

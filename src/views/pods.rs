@@ -57,7 +57,7 @@ impl PodFetcher {
 
 #[component]
 pub fn Pods() -> Element {
-    let client_option = use_context::<Option<Client>>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let navigate = use_navigator();
 
     let mut selected_status = use_signal(|| "All".to_string());
@@ -65,29 +65,29 @@ pub fn Pods() -> Element {
     let mut search_query = use_signal(String::new);
     let pods = use_signal(|| Vec::<Pod>::new());
 
-    // Only create fetcher if we have a client
-    let fetcher_option = client_option.map(|client| PodFetcher {
-        client: client.clone(),
-        pods: pods.clone(),
-    });
-
-    // Only setup effects if we have a fetcher
-    if let Some(fetcher) = &fetcher_option {
-        use_effect({
-            let fetcher = fetcher.clone();
-            move || {
+    // Always call use_effect but handle conditional logic inside
+    use_effect({
+        move || {
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = PodFetcher {
+                    client: client.clone(),
+                    pods: pods.clone(),
+                };
                 let ns = selected_namespace();
                 let status = selected_status();
                 let query = search_query();
                 fetcher.fetch(ns, status, query);
             }
-        });
-    }
+        }
+    });
 
     let refresh = {
-        let fetcher_option = fetcher_option.clone();
         move |_| {
-            if let Some(fetcher) = &fetcher_option {
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = PodFetcher {
+                    client: client.clone(),
+                    pods: pods.clone(),
+                };
                 let ns = selected_namespace();
                 let status = selected_status();
                 let query = search_query();

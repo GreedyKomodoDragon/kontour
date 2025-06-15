@@ -37,7 +37,10 @@ pub fn Navbar() -> Element {
     let kubeconfig_storage = use_context::<KubeconfigStorage>();
     
     // Check if we have a Kubernetes client available (optional, might not exist in error state)
-    let has_client = try_use_context::<Client>().is_some();
+    let client_signal = try_use_context::<Signal<Option<Client>>>();
+    let has_client = client_signal
+        .map(|signal| signal.read().is_some())
+        .unwrap_or(false);
     
     // Use the signal from context instead of local state
     let mut filenames = file_paths_context.kubeconfig_paths;
@@ -53,14 +56,35 @@ pub fn Navbar() -> Element {
         paths.first().cloned().unwrap_or_default()
     });
 
+    // Effect to ensure selected_context is set when filenames changes
+    use_effect({
+        let mut selected_context = selected_context.clone();
+        move || {
+            let paths = filenames.read();
+            let should_update = {
+                let current_selection = selected_context.read();
+                current_selection.is_empty() || !paths.contains(&current_selection)
+            };
+            if should_update {
+                if let Some(first_path) = paths.first() {
+                    selected_context.set(first_path.clone());
+                }
+            }
+        }
+    });
+
     // Effect to reload client when selected context changes
     use_effect({
         let mut current_path = client_reload_context.current_path;
         move || {
             let new_path = selected_context();
+            println!("DEBUG: Selected context changed to: '{}'", new_path);
             if !new_path.is_empty() {
                 tracing::info!("Context changed to: {}", new_path);
-                current_path.set(new_path);
+                current_path.set(new_path.clone());
+                println!("DEBUG: Set current_path to: '{}'", new_path);
+            } else {
+                println!("DEBUG: Selected context is empty, not updating current_path");
             }
         }
     });
@@ -346,12 +370,10 @@ pub fn Navbar() -> Element {
                     // }
                 }
             }
-            // Main Content Outlet - only render when client is available
-            if has_client {
-                div {
-                    class: "main-content",
-                    Outlet::<Route> {}
-                }
+            // Main Content Outlet - always render, but content varies based on client availability
+            div {
+                class: "main-content",
+                Outlet::<Route> {}
             }
         }
     }

@@ -74,7 +74,7 @@ impl StatefulSetFetcher {
 
 #[component]
 pub fn StatefulSets() -> Element {
-    let client = use_context::<Client>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let navigate = use_navigator();
 
     let mut selected_status = use_signal(|| "All".to_string());
@@ -82,28 +82,34 @@ pub fn StatefulSets() -> Element {
     let mut search_query = use_signal(String::new);
     let statefulsets = use_signal(|| Vec::<StatefulSet>::new());
 
-    let fetcher = StatefulSetFetcher {
-        client: client.clone(),
-        statefulsets: statefulsets.clone(),
-    };
-
+    // Always call use_effect but handle conditional logic inside
     use_effect({
-        let fetcher = fetcher.clone();
         move || {
-            let ns = selected_namespace();
-            let status = selected_status();
-            let query = search_query();
-            fetcher.fetch(ns, status, query);
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = StatefulSetFetcher {
+                    client: client.clone(),
+                    statefulsets: statefulsets.clone(),
+                };
+                let ns = selected_namespace();
+                let status = selected_status();
+                let query = search_query();
+                fetcher.fetch(ns, status, query);
+            }
         }
     });
 
     let refresh = {
-        let fetcher = fetcher.clone();
         move |_| {
-            let ns = selected_namespace();
-            let status = selected_status();
-            let query = search_query();
-            fetcher.fetch(ns, status, query);
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = StatefulSetFetcher {
+                    client: client.clone(),
+                    statefulsets: statefulsets.clone(),
+                };
+                let ns = selected_namespace();
+                let status = selected_status();
+                let query = search_query();
+                fetcher.fetch(ns, status, query);
+            }
         }
     };
 

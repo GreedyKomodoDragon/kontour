@@ -7,7 +7,7 @@ const CREATE_FORMS_CSS: Asset = asset!("/assets/styling/create_forms.css");
 
 #[component]
 pub fn CreateNamespace() -> Element {
-    let client = use_context::<Client>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let mut name = use_signal(String::new);
     let mut labels = use_signal(|| Vec::<(String, String)>::new());
     let mut error = use_signal(String::new);
@@ -40,7 +40,11 @@ pub fn CreateNamespace() -> Element {
         is_submitting.set(true);
         error.set(String::new());
 
-        let client = client.clone();
+        let Some(client) = client_signal.read().clone() else {
+            error.set("No Kubernetes connection available".to_string());
+            is_submitting.set(false);
+            return;
+        };
         let name = name.read().to_string();
         let labels = labels.read().to_vec();
 

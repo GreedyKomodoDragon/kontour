@@ -23,7 +23,7 @@ struct KeyValuePair {
 
 #[component]
 pub fn CreatePod() -> Element {
-    let client_option = use_context::<Option<Client>>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let navigate = use_navigator();
     
     let mut name = use_signal(String::new);
@@ -80,7 +80,7 @@ pub fn CreatePod() -> Element {
         let image = image();
         
         // Check if we have a client
-        let Some(client) = client_option.clone() else {
+        let Some(client) = client_signal.read().clone() else {
             error.set(Some("No Kubernetes connection available".to_string()));
             return;
         };

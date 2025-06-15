@@ -8,47 +8,55 @@ const OVERVIEW_CSS: Asset = asset!("/assets/styling/overview.css");
 /// The Home page component that renders the Kubernetes dashboard overview
 #[component]
 pub fn Home() -> Element {
-    let client = use_context::<Client>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let events = use_signal(Vec::<Event>::new);
     let resources = use_signal(|| ClusterResourceUsage::default());
 
+    // Check if we have a client available
+    let has_client = client_signal.read().is_some();
+
     use_effect({
         let mut events = events.clone();
-        let client = client.clone();
+        let client_signal = client_signal.clone();
         move || {
-            spawn({
-                let client = client.clone();
-                async move {
-                    let recent_events = get_recent_events(client).await;
-                    events.set(recent_events);
-                }
-            });
+            if let Some(client) = &*client_signal.read() {
+                spawn({
+                    let client = client.clone();
+                    async move {
+                        let recent_events = get_recent_events(client).await;
+                        events.set(recent_events);
+                    }
+                });
+            }
         }
     });
     
     use_effect({
         let mut resources = resources.clone();
-        let client = client.clone();
+        let client_signal = client_signal.clone();
         move || {
-            spawn({
-                let client = client.clone();
-                async move {
-                    let usage = get_cluster_resources(client).await;
-                    resources.set(usage);
-                }
-            });
+            if let Some(client) = &*client_signal.read() {
+                spawn({
+                    let client = client.clone();
+                    async move {
+                        let usage = get_cluster_resources(client).await;
+                        resources.set(usage);
+                    }
+                });
+            }
         }
     });
 
     rsx! {
         link { rel: "stylesheet", href: OVERVIEW_CSS }
         div { class: "overview-container",
-            div { class: "overview-header",
-                h1 { "Cluster Overview" }
-            }
+            if has_client {
+                div { class: "overview-header",
+                    h1 { "Cluster Overview" }
+                }
 
-            // Cluster Status Cards
-            div { class: "cluster-status",
+                // Cluster Status Cards
+                div { class: "cluster-status",
                 div { class: "status-card",
                     h3 { "Cluster Status" }
                     p {
@@ -225,6 +233,20 @@ pub fn Home() -> Element {
                             }
                         }
                     })}
+                }
+            }
+            } else {
+                // Show message when no client is available
+                div {
+                    style: "display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 4rem; text-align: center;",
+                    h2 { 
+                        style: "color: #6b7280; font-size: 1.5rem; margin-bottom: 1rem;",
+                        "No Kubernetes Connection" 
+                    }
+                    p { 
+                        style: "color: #9ca3af; max-width: 500px; line-height: 1.5;",
+                        "Please select a valid kubeconfig file from the sidebar to view cluster overview and resources."
+                    }
                 }
             }
         }

@@ -213,29 +213,34 @@ impl NamespaceFetcher {
 
 #[component]
 pub fn Namespaces() -> Element {
-    let client = use_context::<Client>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let selected_status = use_signal(|| "all");
     let search_query = use_signal(String::new);
     let namespaces = use_signal(|| Vec::<NamespaceInfo>::new());
 
-    let fetcher = NamespaceFetcher {
-        client: client.clone(),
-        namespaces: namespaces.clone(),
-    };
-
     use_effect({
-        let fetcher = fetcher.clone();
         move || {
-            let query = search_query();
-            fetcher.fetch(query);
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = NamespaceFetcher {
+                    client: client.clone(),
+                    namespaces: namespaces.clone(),
+                };
+                let query = search_query();
+                fetcher.fetch(query);
+            }
         }
     });
 
     let refresh = {
-        let fetcher = fetcher.clone();
         move |_: Event<MouseData>| {
-            let query = search_query();
-            fetcher.fetch(query);
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = NamespaceFetcher {
+                    client: client.clone(),
+                    namespaces: namespaces.clone(),
+                };
+                let query = search_query();
+                fetcher.fetch(query);
+            }
         }
     };
 

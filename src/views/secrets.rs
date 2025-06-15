@@ -67,33 +67,38 @@ impl SecretFetcher {
 
 #[component]
 pub fn Secrets() -> Element {
-    let client = use_context::<Client>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let navigate = use_navigator();
 
     let mut selected_namespace = use_signal(|| "All".to_string());
     let mut search_query = use_signal(String::new);
     let secrets = use_signal(|| Vec::<Secret>::new());
 
-    let fetcher = SecretFetcher {
-        client: client.clone(),
-        secrets: secrets.clone(),
-    };
-
     use_effect({
-        let fetcher = fetcher.clone();
         move || {
-            let ns = selected_namespace();
-            let query = search_query();
-            fetcher.fetch(ns, query);
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = SecretFetcher {
+                    client: client.clone(),
+                    secrets: secrets.clone(),
+                };
+                let ns = selected_namespace();
+                let query = search_query();
+                fetcher.fetch(ns, query);
+            }
         }
     });
 
     let refresh = {
-        let fetcher = fetcher.clone();
         move |_| {
-            let ns = selected_namespace();
-            let query = search_query();
-            fetcher.fetch(ns, query);
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = SecretFetcher {
+                    client: client.clone(),
+                    secrets: secrets.clone(),
+                };
+                let ns = selected_namespace();
+                let query = search_query();
+                fetcher.fetch(ns, query);
+            }
         }
     };
 

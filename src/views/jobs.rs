@@ -59,31 +59,36 @@ impl JobFetcher {
 
 #[component]
 pub fn Jobs() -> Element {
-    let client = use_context::<Client>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let mut selected_namespace = use_signal(|| "All".to_string());
     let mut search_query = use_signal(String::new);
     let jobs = use_signal(|| Vec::<Job>::new());
 
-    let fetcher = JobFetcher {
-        client: client.clone(),
-        jobs: jobs.clone(),
-    };
-
     use_effect({
-        let fetcher = fetcher.clone();
         move || {
-            let ns = selected_namespace();
-            let query = search_query();
-            fetcher.fetch(ns, query);
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = JobFetcher {
+                    client: client.clone(),
+                    jobs: jobs.clone(),
+                };
+                let ns = selected_namespace();
+                let query = search_query();
+                fetcher.fetch(ns, query);
+            }
         }
     });
 
     let refresh = {
-        let fetcher = fetcher.clone();
         move |_| {
-            let ns = selected_namespace();
-            let query = search_query();
-            fetcher.fetch(ns, query);
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = JobFetcher {
+                    client: client.clone(),
+                    jobs: jobs.clone(),
+                };
+                let ns = selected_namespace();
+                let query = search_query();
+                fetcher.fetch(ns, query);
+            }
         }
     };
 

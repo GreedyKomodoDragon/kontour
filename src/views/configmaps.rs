@@ -66,33 +66,38 @@ impl ConfigMapFetcher {
 
 #[component]
 pub fn ConfigMaps() -> Element {
-    let client = use_context::<Client>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let navigate = use_navigator();
 
     let mut selected_namespace = use_signal(|| "All".to_string());
     let mut search_query = use_signal(String::new);
     let configmaps = use_signal(|| Vec::<ConfigMap>::new());
 
-    let fetcher = ConfigMapFetcher {
-        client: client.clone(),
-        configmaps: configmaps.clone(),
-    };
-
     use_effect({
-        let fetcher = fetcher.clone();
         move || {
-            let ns = selected_namespace();
-            let query = search_query();
-            fetcher.fetch(ns, query);
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = ConfigMapFetcher {
+                    client: client.clone(),
+                    configmaps: configmaps.clone(),
+                };
+                let ns = selected_namespace();
+                let query = search_query();
+                fetcher.fetch(ns, query);
+            }
         }
     });
 
     let refresh = {
-        let fetcher = fetcher.clone();
         move |_| {
-            let ns = selected_namespace();
-            let query = search_query();
-            fetcher.fetch(ns, query);
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = ConfigMapFetcher {
+                    client: client.clone(),
+                    configmaps: configmaps.clone(),
+                };
+                let ns = selected_namespace();
+                let query = search_query();
+                fetcher.fetch(ns, query);
+            }
         }
     };
 

@@ -29,7 +29,7 @@ struct KeyValuePair {
 
 #[component]
 pub fn CreateCronJob() -> Element {
-    let client = use_context::<Client>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let navigate = use_navigator();
     
     let mut name = use_signal(String::new);
@@ -89,7 +89,9 @@ pub fn CreateCronJob() -> Element {
         let namespace = namespace();
         let schedule = schedule();
         let image = image();
-        let client = client.clone();
+        
+        if let Some(client) = &*client_signal.read() {
+            let client = client.clone();
 
         // Basic validation
         if name.is_empty() {
@@ -238,6 +240,9 @@ pub fn CreateCronJob() -> Element {
                 }
             }
         });
+        } else {
+            error.set(Some("Kubernetes client not available".to_string()));
+        }
     };
 
     rsx! {

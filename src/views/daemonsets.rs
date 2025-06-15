@@ -73,7 +73,7 @@ impl DaemonSetFetcher {
 
 #[component]
 pub fn DaemonSets() -> Element {
-    let client = use_context::<Client>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let navigate = use_navigator();
 
     let mut selected_status = use_signal(|| "All".to_string());
@@ -81,28 +81,34 @@ pub fn DaemonSets() -> Element {
     let mut search_query = use_signal(String::new);
     let daemonsets = use_signal(|| Vec::<DaemonSet>::new());
 
-    let fetcher = DaemonSetFetcher {
-        client: client.clone(),
-        daemonsets: daemonsets.clone(),
-    };
-
+    // Always call use_effect but handle conditional logic inside
     use_effect({
-        let fetcher = fetcher.clone();
         move || {
-            let ns = selected_namespace();
-            let status = selected_status();
-            let query = search_query();
-            fetcher.fetch(ns, status, query);
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = DaemonSetFetcher {
+                    client: client.clone(),
+                    daemonsets: daemonsets.clone(),
+                };
+                let ns = selected_namespace();
+                let status = selected_status();
+                let query = search_query();
+                fetcher.fetch(ns, status, query);
+            }
         }
     });
 
     let refresh = {
-        let fetcher = fetcher.clone();
         move |_| {
-            let ns = selected_namespace();
-            let status = selected_status();
-            let query = search_query();
-            fetcher.fetch(ns, status, query);
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = DaemonSetFetcher {
+                    client: client.clone(),
+                    daemonsets: daemonsets.clone(),
+                };
+                let ns = selected_namespace();
+                let status = selected_status();
+                let query = search_query();
+                fetcher.fetch(ns, status, query);
+            }
         }
     };
 

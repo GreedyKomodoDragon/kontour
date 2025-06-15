@@ -66,7 +66,7 @@ impl ServiceFetcher {
 
 #[component]
 pub fn Services() -> Element {
-    let client = use_context::<Client>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let navigate = use_navigator();
 
     let mut selected_namespace = use_signal(|| "All".to_string());
@@ -74,28 +74,33 @@ pub fn Services() -> Element {
     let mut search_query = use_signal(String::new);
     let services = use_signal(|| Vec::<Service>::new());
 
-    let fetcher = ServiceFetcher {
-        client: client.clone(),
-        services: services.clone(),
-    };
-
     use_effect({
-        let fetcher = fetcher.clone();
         move || {
-            let ns = selected_namespace();
-            let type_ = selected_type();
-            let query = search_query();
-            fetcher.fetch(ns, type_, query);
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = ServiceFetcher {
+                    client: client.clone(),
+                    services: services.clone(),
+                };
+                let ns = selected_namespace();
+                let type_ = selected_type();
+                let query = search_query();
+                fetcher.fetch(ns, type_, query);
+            }
         }
     });
 
     let refresh = {
-        let fetcher = fetcher.clone();
         move |_| {
-            let ns = selected_namespace();
-            let type_ = selected_type();
-            let query = search_query();
-            fetcher.fetch(ns, type_, query);
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = ServiceFetcher {
+                    client: client.clone(),
+                    services: services.clone(),
+                };
+                let ns = selected_namespace();
+                let type_ = selected_type();
+                let query = search_query();
+                fetcher.fetch(ns, type_, query);
+            }
         }
     };
 

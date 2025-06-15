@@ -1,11 +1,11 @@
 use dioxus::{logger::tracing, prelude::*};
 use k8s_openapi::{api::core::v1::{Node, Pod}, apimachinery::pkg::api::resource::Quantity};
 use kube::{api::{ListParams, Api}, Client};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
-use crate::k8s::{fetch_node_metrics, apply_metrics_to_node, parse_resource_quantity};
+use crate::k8s::{fetch_node_metrics, parse_resource_quantity};
 
-use crate::components::{NodeItem, NodeItemProps};
+use crate::components::NodeItem;
 
 const NODES_CSS: Asset = asset!("/assets/styling/nodes.css");
 
@@ -93,28 +93,53 @@ struct NodeData {
 
 #[component]
 pub fn Nodes() -> Element {
-    let client = use_context::<Client>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let mut selected_node = use_signal(|| String::from("all"));
     let search_query = use_signal(String::new);
     let nodes = use_signal(|| Vec::<NodeInfo>::new());
 
-    let fetcher = NodeFetcher {
-        client: client.clone(),
-        nodes: nodes.clone(),
-    };
-
     use_effect({
-        let fetcher = fetcher.clone();
-        move || fetcher.fetch()
+        move || {
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = NodeFetcher {
+                    client: client.clone(),
+                    nodes: nodes.clone(),
+                };
+                fetcher.fetch();
+            }
+        }
     });
 
     let refresh = {
-        let fetcher = fetcher.clone();
-        move |_: Event<MouseData>| fetcher.fetch()
+        move |_: Event<MouseData>| {
+            if let Some(client) = &*client_signal.read() {
+                let fetcher = NodeFetcher {
+                    client: client.clone(),
+                    nodes: nodes.clone(),
+                };
+                fetcher.fetch();
+            }
+        }
     };
 
-    // Fetch metrics first
-    let metrics_map = futures::executor::block_on(fetch_node_metrics(&client));
+    // Use a signal to track metrics and fetch them asynchronously
+    let metrics_map = use_signal(|| HashMap::<String, crate::k8s::node_metrics::NodeMetrics>::new());
+
+    // Fetch metrics asynchronously when client changes
+    use_effect({
+        let mut metrics_map = metrics_map.clone();
+        move || {
+            if let Some(client) = &*client_signal.read() {
+                let client = client.clone();
+                spawn(async move {
+                    let metrics = fetch_node_metrics(&client).await;
+                    metrics_map.set(metrics);
+                });
+            } else {
+                metrics_map.set(HashMap::new());
+            }
+        }
+    });
 
     // Convert k8s Node objects to our display format
     let node_data: Vec<NodeData> = nodes()
@@ -184,7 +209,8 @@ pub fn Nodes() -> Element {
 
             // Use the pre-fetched metrics
             let binding = BTreeMap::new();
-            let metrics = metrics_map
+            let metrics_map_value = metrics_map();
+            let metrics = metrics_map_value
                 .get(&name)
                 .map(|m| &m.usage)
                 .unwrap_or(&binding);

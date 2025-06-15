@@ -1,22 +1,19 @@
 use crate::k8s::{
-    find_unused_configmaps, find_unused_pvcs,
+    find_pods_without_limits, find_resource_hotspots, find_unused_configmaps, find_unused_pvcs,
     problem_pod::{check_pod_status, ProblemPod},
     resource_limits::PodResourceIssue,
     resource_metrics::ResourceHotspot,
-    find_pods_without_limits, find_resource_hotspots,
-    ClusterStats
+    ClusterStats,
 };
 use dioxus::{logger::tracing, prelude::*};
-use k8s_openapi::api::{
-    core::v1::{ConfigMap, PersistentVolumeClaim, Pod},
-};
+use k8s_openapi::api::core::v1::{ConfigMap, PersistentVolumeClaim, Pod};
 use kube::{api::ListParams, Api, Client};
 
 const INSIGHTS_CSS: Asset = asset!("/assets/styling/insights.css");
 
 #[component]
 pub fn Insights() -> Element {
-    let client = use_context::<Client>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let problem_pods = use_signal(Vec::<ProblemPod>::new);
     let cluster_stats = use_signal(ClusterStats::default);
     let mut visible_pods = use_signal(|| 6); // Number of pods to show initially
@@ -32,108 +29,116 @@ pub fn Insights() -> Element {
     // Fetch problem pods and compute stats
     // Effect to find unused ConfigMaps
     use_effect({
-        let client = client.clone();
         let mut unused_configmaps = unused_configmaps.clone();
         let mut unused_pvcs = unused_pvcs.clone();
-        
-        move || {
-            spawn({
-                let client = client.clone();
-                async move {
-                    let unused_cm = find_unused_configmaps(client.clone()).await;
-                    unused_configmaps.set(unused_cm);
 
-                    let unused_pvc = find_unused_pvcs(client).await;
-                    unused_pvcs.set(unused_pvc);
-                }
-            });
+        move || {
+            if let Some(client) = &*client_signal.read() {
+                spawn({
+                    let client = client.clone();
+                    async move {
+                        let unused_cm = find_unused_configmaps(client.clone()).await;
+                        unused_configmaps.set(unused_cm);
+
+                        let unused_pvc = find_unused_pvcs(client).await;
+                        unused_pvcs.set(unused_pvc);
+                    }
+                });
+            }
         }
     });
 
     // Effect to fetch problem pods and compute stats
     use_effect({
-        let client = client.clone();
         let mut problem_pods = problem_pods.clone();
         let mut cluster_stats = cluster_stats.clone();
         let mut is_loading_more = is_loading_more.clone();
 
         move || {
-            spawn({
-                let client = client.clone();
-                async move {
-                    let pods: Api<Pod> = Api::all(client);
-                    let mut params = ListParams::default().limit(20); // Fetch 20 pods at a time
-                    let mut all_problems = Vec::new();
-                    let mut stats = ClusterStats::default();
+            if let Some(client) = &*client_signal.read() {
+                spawn({
+                    let client = client.clone();
+                    async move {
+                        let pods: Api<Pod> = Api::all(client);
+                        let mut params = ListParams::default().limit(20); // Fetch 20 pods at a time
+                        let mut all_problems = Vec::new();
+                        let mut stats = ClusterStats::default();
 
-                    loop {
-                        match pods.list(&params).await {
-                            Ok(pod_list) => {
-                                // Update stats with this batch
-                                let batch_stats = ClusterStats::compute_from_pods(&pod_list.items);
-                                stats.crashloop_count += batch_stats.crashloop_count;
-                                stats.restart_count += batch_stats.restart_count;
-                                stats.evicted_count += batch_stats.evicted_count;
+                        loop {
+                            match pods.list(&params).await {
+                                Ok(pod_list) => {
+                                    // Update stats with this batch
+                                    let batch_stats =
+                                        ClusterStats::compute_from_pods(&pod_list.items);
+                                    stats.crashloop_count += batch_stats.crashloop_count;
+                                    stats.restart_count += batch_stats.restart_count;
+                                    stats.evicted_count += batch_stats.evicted_count;
 
-                                // Process problem pods from this batch
-                                let batch_problems: Vec<ProblemPod> =
-                                    pod_list.items.iter().filter_map(check_pod_status).collect();
-                                all_problems.extend(batch_problems);
+                                    // Process problem pods from this batch
+                                    let batch_problems: Vec<ProblemPod> = pod_list
+                                        .items
+                                        .iter()
+                                        .filter_map(check_pod_status)
+                                        .collect();
+                                    all_problems.extend(batch_problems);
 
-                                // Update the UI with what we have so far
-                                cluster_stats.set(stats.clone());
-                                problem_pods.set(all_problems.clone());
+                                    // Update the UI with what we have so far
+                                    cluster_stats.set(stats.clone());
+                                    problem_pods.set(all_problems.clone());
 
-                                // Check if we've received all pods
-                                if let Some(continue_token) = pod_list.metadata.continue_ {
-                                    params = params.continue_token(&continue_token);
-                                    is_loading_more.set(true);
-                                } else {
+                                    // Check if we've received all pods
+                                    if let Some(continue_token) = pod_list.metadata.continue_ {
+                                        params = params.continue_token(&continue_token);
+                                        is_loading_more.set(true);
+                                    } else {
+                                        is_loading_more.set(false);
+                                        break;
+                                    }
+                                }
+                                Err(e) => {
+                                    tracing::error!("Failed to fetch pods: {}", e);
                                     is_loading_more.set(false);
                                     break;
                                 }
                             }
-                            Err(e) => {
-                                tracing::error!("Failed to fetch pods: {}", e);
-                                is_loading_more.set(false);
-                                break;
-                            }
                         }
                     }
-                }
-            });
+                });
+            }
         }
     });
 
     // Effect to find pods without resource limits
     use_effect({
-        let client = client.clone();
         let mut pods_without_limits = pods_without_limits.clone();
-        
+
         move || {
-            spawn({
-                let client = client.clone();
-                async move {
-                    let issues = find_pods_without_limits(client).await;
-                    pods_without_limits.set(issues);
-                }
-            });
+            if let Some(client) = &*client_signal.read() {
+                spawn({
+                    let client = client.clone();
+                    async move {
+                        let issues = find_pods_without_limits(client).await;
+                        pods_without_limits.set(issues);
+                    }
+                });
+            }
         }
     });
 
     // Effect to find resource hotspots
     use_effect({
-        let client = client.clone();
         let mut resource_hotspots = resource_hotspots.clone();
-        
+
         move || {
-            spawn({
-                let client = client.clone();
-                async move {
-                    let hotspots = find_resource_hotspots(client).await;
-                    resource_hotspots.set(hotspots);
-                }
-            });
+            if let Some(client) = &*client_signal.read() {
+                spawn({
+                    let client = client.clone();
+                    async move {
+                        let hotspots = find_resource_hotspots(client).await;
+                        resource_hotspots.set(hotspots);
+                    }
+                });
+            }
         }
     });
 
@@ -159,7 +164,7 @@ pub fn Insights() -> Element {
                     span { class: "stat-value", "{cluster_stats.read().evicted_count}" }
                 }
             }
-        }
+        }}
 
         // Problem Pods Section
         div { class: "insights-section",
@@ -223,14 +228,14 @@ pub fn Insights() -> Element {
                     .iter()
                     .take(*visible_hotspots.read())
                     .map(|hotspot| rsx! {
-                        div { 
+                        div {
                             class: format!("hotspot-card {}", if hotspot.severity == "high" { "high-usage" } else { "low-usage" }),
                             h3 { "{hotspot.hotspot_type}" }
                             div { class: "hotspot-content",
                                 p { "{hotspot.name}" }
                                 span { class: "pod-namespace", "{hotspot.namespace}" }
-                                span { 
-                                    class: format!("usage-value {}", if hotspot.severity == "high" { "high" } else { "low" }), 
+                                span {
+                                    class: format!("usage-value {}", if hotspot.severity == "high" { "high" } else { "low" }),
                                     if hotspot.hotspot_type.contains("CPU") {
                                         "{hotspot.cpu_usage:.1}%"
                                     } else {
@@ -374,6 +379,5 @@ pub fn Insights() -> Element {
                 }
             }
         }
-    }
     }
 }

@@ -45,7 +45,7 @@ struct VolumeClaimTemplate {
 
 #[component]
 pub fn CreateStatefulSet() -> Element {
-    let client = use_context::<Client>();
+    let client_signal = use_context::<Signal<Option<Client>>>();
     let navigate = use_navigator();
 
     let mut name = use_signal(String::new);
@@ -128,7 +128,9 @@ pub fn CreateStatefulSet() -> Element {
         let replicas_str = replicas();
         let image = image();
         let service_name = service_name();
-        let client = client.clone();
+        
+        if let Some(client) = &*client_signal.read() {
+            let client = client.clone();
 
         // Basic validation
         if name.is_empty() {
@@ -377,6 +379,9 @@ pub fn CreateStatefulSet() -> Element {
                 }
             }
         });
+        } else {
+            error.set(Some("Kubernetes client not available".to_string()));
+        }
     };
 
     rsx! {
