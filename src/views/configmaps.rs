@@ -67,7 +67,6 @@ impl ConfigMapFetcher {
 #[component]
 pub fn ConfigMaps() -> Element {
     let client_signal = use_context::<Signal<Option<Client>>>();
-    let navigate = use_navigator();
 
     let mut selected_namespace = use_signal(|| "All".to_string());
     let mut search_query = use_signal(String::new);

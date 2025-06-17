@@ -29,7 +29,7 @@ struct KeyValuePair {
 
 #[component]
 pub fn CreateCronJob() -> Element {
-    let client_signal = use_context::<Signal<Option<Client>>>();
+    let client_signal: Signal<Option<Client>> = use_context::<Signal<Option<Client>>>();
     let navigate = use_navigator();
     
     let mut name = use_signal(String::new);

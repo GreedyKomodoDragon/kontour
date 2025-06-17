@@ -8,6 +8,8 @@ const NAVBAR_CSS: Asset = asset!("/assets/styling/navbar.css");
 
 // Import the asset macro for static assets
 const OVERVIEW: Asset = asset!("/assets/images/overview.svg");
+const OWL: Asset = asset!("/assets/images/owl.svg");
+
 const NODES: Asset = asset!("/assets/images/nodes.svg");
 const NAMESPACE: Asset = asset!("/assets/images/namespace.svg");
 const DEPLOYMENT: Asset = asset!("/assets/images/deployment.svg");
@@ -48,6 +50,7 @@ pub fn Navbar() -> Element {
     let mut filenames = file_paths_context.kubeconfig_paths;
     let mut dialog_state = use_signal::<Option<(String, String)>>(|| None);
     let mut input_key = use_signal(|| 0);
+    let mut is_collapsed = use_signal(|| false);
     let mut selected_context = use_signal(|| {
         let paths = filenames.read();
         paths.first().cloned().unwrap_or_default()
@@ -113,14 +116,19 @@ pub fn Navbar() -> Element {
     let render_nav_group = |title: &str, items: &[NavItem]| {
         rsx! {
             div { class: "nav-group",
-                span { class: "nav-group-title", "{title}" }
+                if !is_collapsed() {
+                    span { class: "nav-group-title", "{title}" }
+                }
                 {items.iter().map(|item| rsx! {
                     Link {
                         key: "{item.label}",
                         to: item.route.clone(),
                         class: "{item.class}",
+                        title: if is_collapsed() { item.label } else { "" },
                         img { src: "{item.icon}", alt: "", class: "nav-icon" }
-                        "{item.label}"
+                        if !is_collapsed() {
+                            span { class: "nav-text", "{item.label}" }
+                        }
                     }
                 })}
             }
@@ -186,69 +194,84 @@ pub fn Navbar() -> Element {
         }
 
         div { class: "layout-container",
-            div { id: "sidebar", class: "k8s-sidebar",
+            div { 
+                id: "sidebar", 
+                class: if is_collapsed() { "k8s-sidebar collapsed" } else { "k8s-sidebar" },
+                
+                // Toggle button
+                button {
+                    class: "sidebar-toggle",
+                    onclick: move |_| {
+                        is_collapsed.toggle();
+                    },
+                    title: if is_collapsed() { "Expand sidebar" } else { "Collapse sidebar" },
+                    if is_collapsed() { "→" } else { "←" }
+                }
+                
                 div { class: "sidebar-logo",
-                    img { src: "/assets/kubernetes-logo.svg", alt: "Kubernetes Logo" }
-                    span { "Kubernetes Dashboard" }
+                    img { src: "{OWL}", alt: "Kontour owl Logo", style: "width: 50px; height: 50px;" }
+                    span { style: "font-size: 1.75rem;", "Kontour" }
                 }
                 
                 nav { class: "sidebar-links",
                     // Cluster Management Section
                     div { class: "nav-group",
-                        span { class: "nav-group-title", "CLUSTER MANAGEMENT" }
-                        
-                        div { class: "cluster-selector",
-                            label { r#for: "cluster-select", class: "sr-only", "Select Cluster" }
-                            select {
-                                id: "cluster-select",
-                                class: "cluster-dropdown",
-                                value: "{selected_context}",
-                                onchange: move |evt| {
-                                    let new_selection = evt.value();
-                                    tracing::info!("User selected context: {}", new_selection);
-                                    selected_context.set(new_selection);
-                                },
-                                option { 
-                                    value: "", 
-                                    disabled: true, 
-                                    selected: selected_context.read().is_empty(),
-                                    "Select kubeconfig file"
-                                }
-                                {filenames.read().iter().map(|filepath| {
-                                    let display_name = filepath.split('/').last().unwrap_or(filepath);
-                                    rsx! {
-                                        option { 
-                                            key: "{filepath}", 
-                                            value: "{filepath}",
-                                            title: "{filepath}",
-                                            "{display_name}"
-                                        }
+                        if !is_collapsed() {
+                            span { class: "nav-group-title", "CLUSTER MANAGEMENT" }
+                            
+                            div { class: "cluster-selector",
+                                label { r#for: "cluster-select", class: "sr-only", "Select Cluster" }
+                                select {
+                                    id: "cluster-select",
+                                    class: "cluster-dropdown",
+                                    value: "{selected_context}",
+                                    onchange: move |evt| {
+                                        let new_selection = evt.value();
+                                        tracing::info!("User selected context: {}", new_selection);
+                                        selected_context.set(new_selection);
+                                    },
+                                    option { 
+                                        value: "", 
+                                        disabled: true, 
+                                        selected: selected_context.read().is_empty(),
+                                        "Select kubeconfig file"
                                     }
-                                })}
+                                    {filenames.read().iter().map(|filepath| {
+                                        let display_name = filepath.split('/').last().unwrap_or(filepath);
+                                        rsx! {
+                                            option { 
+                                                key: "{filepath}", 
+                                                value: "{filepath}",
+                                                title: "{filepath}",
+                                                "{display_name}"
+                                            }
+                                        }
+                                    })}
+                                }
+                                
+                                if !filenames.read().is_empty() {
+                                    div { class: "file-count-info",
+                                        "{filenames.read().len()} kubeconfig file(s) loaded"
+                                    }
+                                }
+                            }
+
+                            input {
+                                key: "{input_key()}",
+                                r#type: "file",
+                                accept: ".yaml,.kubeconfig,.yml",
+                                id: "kubeconfig-upload",
+                                hidden: true,
+                                onchange: handle_file_upload
                             }
                             
-                            if !filenames.read().is_empty() {
-                                div { class: "file-count-info",
-                                    "{filenames.read().len()} kubeconfig file(s) loaded"
-                                }
+                            label {
+                                r#for: "kubeconfig-upload",
+                                class: "add-kubeconfig-button",
+                                tabindex: 0,
+                                role: "button",
+                                "Add Kubeconfig"
                             }
-                        }
-
-                        input {
-                            key: "{input_key()}",
-                            r#type: "file",
-                            accept: ".yaml,.kubeconfig,.yml",
-                            id: "kubeconfig-upload",
-                            hidden: true,
-                            onchange: handle_file_upload
-                        }
-                        
-                        label {
-                            r#for: "kubeconfig-upload",
-                            class: "add-kubeconfig-button",
-                            tabindex: 0,
-                            role: "button",
-                            "Add Kubeconfig"
                         }
                     }
                     
@@ -260,13 +283,21 @@ pub fn Navbar() -> Element {
                         {render_nav_group("STORAGE", &storage_nav_items)}
                     } else {
                         div { class: "nav-group",
-                            div { 
-                                style: "padding: 1rem; color: #9ca3af; text-align: center; font-size: 0.875rem;",
-                                "🔌 No cluster connection"
-                            }
-                            div { 
-                                style: "padding: 0 1rem; color: #6b7280; text-align: center; font-size: 0.75rem; line-height: 1.4;",
-                                "Select a valid kubeconfig above to enable navigation"
+                            if !is_collapsed() {
+                                div { 
+                                    style: "padding: 1rem; color: #9ca3af; text-align: center; font-size: 0.875rem;",
+                                    "🔌 No cluster connection"
+                                }
+                                div { 
+                                    style: "padding: 0 1rem; color: #6b7280; text-align: center; font-size: 0.75rem; line-height: 1.4;",
+                                    "Select a valid kubeconfig above to enable navigation"
+                                }
+                            } else {
+                                div { 
+                                    class: "collapsed-no-client",
+                                    title: "No cluster connection",
+                                    "🔌"
+                                }
                             }
                         }
                     }

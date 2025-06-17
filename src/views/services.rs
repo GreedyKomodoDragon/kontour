@@ -67,7 +67,6 @@ impl ServiceFetcher {
 #[component]
 pub fn Services() -> Element {
     let client_signal = use_context::<Signal<Option<Client>>>();
-    let navigate = use_navigator();
 
     let mut selected_namespace = use_signal(|| "All".to_string());
     let mut selected_type = use_signal(|| "All".to_string());
