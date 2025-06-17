@@ -5,7 +5,6 @@ use k8s_openapi::api::core::v1::Service;
 struct ServiceData {
     name: String,
     namespace: String,
-    age: String,
     service_type: String,
     cluster_ip: String,
     external_ip: String,
@@ -35,7 +34,6 @@ pub fn ServiceItem(props: ServiceItemProps) -> Element {
     let service_data = ServiceData {
         name: props.service.metadata.name.clone().unwrap_or_default(),
         namespace: props.service.metadata.namespace.clone().unwrap_or_default(),
-        age: "1h".to_string(), // TODO: Calculate age
         service_type: props.service.spec.as_ref()
             .and_then(|s| s.type_.as_ref())
             .map(|t| t.as_str())

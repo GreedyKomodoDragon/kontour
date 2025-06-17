@@ -7,8 +7,6 @@ pub enum KubeconfigError {
     NotFound(String),
     /// Error when a referenced file path doesn't exist
     FileNotFound(String),
-    /// Error when kubeconfig content is invalid
-    InvalidContent(String),
     /// Error when storing kubeconfig fails
     StorageError(String),
     /// Error when creating Kubernetes client fails
@@ -22,7 +20,6 @@ impl fmt::Display for KubeconfigError {
         match self {
             KubeconfigError::NotFound(path) => write!(f, "Kubeconfig not found: {}", path),
             KubeconfigError::FileNotFound(path) => write!(f, "File not found: {}", path),
-            KubeconfigError::InvalidContent(msg) => write!(f, "Invalid kubeconfig content: {}", msg),
             KubeconfigError::StorageError(msg) => write!(f, "Storage error: {}", msg),
             KubeconfigError::ClientCreationError(msg) => write!(f, "Client creation failed: {}", msg),
             KubeconfigError::IoError(msg) => write!(f, "IO error: {}", msg),

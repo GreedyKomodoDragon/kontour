@@ -2,5 +2,4 @@
 pub mod error;
 pub mod kubeconfig;
 
-pub use error::*;
 pub use kubeconfig::*;

@@ -55,6 +55,7 @@ pub fn PodContainers(props: PodContainersProps) -> Element {
             div { class: "containers-grid",
                 {props.containers.iter().cloned().map(|container| {
                     let is_expanded = expanded_states.read().get(&container.name).copied().unwrap_or(false);
+                    let container_name = container.name.clone();
                     rsx! {
                         div { 
                             key: "container-{props.key_base}-{container.name}",
@@ -68,7 +69,7 @@ pub fn PodContainers(props: PodContainersProps) -> Element {
                                     span { class: "image-tag", "{container.image}" }
                                     button {
                                         class: "btn-icon expand-toggle",
-                                        onclick: move |_| toggle_container(container.name.clone()),
+                                        onclick: move |_| toggle_container(container_name.clone()),
                                         title: if is_expanded { "Collapse" } else { "Expand" },
                                         if is_expanded { "🔼" } else { "🔽" }
                                     }

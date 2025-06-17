@@ -1,6 +1,5 @@
 use dioxus::logger::tracing;
 use k8s_openapi::{
-    api::core::v1::Node,
     apimachinery::pkg::{
         api::resource::Quantity,
         apis::meta::v1::ObjectMeta,
@@ -17,8 +16,6 @@ use std::collections::{BTreeMap, HashMap};
 #[derive(Deserialize, Clone, Debug, Default)]
 pub struct NodeMetrics {
     pub metadata: ObjectMeta,
-    pub timestamp: String,
-    pub window: String,
     pub usage: BTreeMap<String, Quantity>,
 }
 
@@ -26,23 +23,23 @@ impl Resource for NodeMetrics {
     type DynamicType = ();
     type Scope = kube::core::NamespaceResourceScope;
 
-    fn group(dt: &()) -> std::borrow::Cow<'static, str> {
+    fn group(_dt: &()) -> std::borrow::Cow<'static, str> {
         "metrics.k8s.io".into()
     }
     
-    fn version(dt: &()) -> std::borrow::Cow<'static, str> {
+    fn version(_dt: &()) -> std::borrow::Cow<'static, str> {
         "v1beta1".into()
     }
     
-    fn kind(dt: &()) -> std::borrow::Cow<'static, str> {
+    fn kind(_dt: &()) -> std::borrow::Cow<'static, str> {
         "NodeMetrics".into()
     }
     
-    fn plural(dt: &()) -> std::borrow::Cow<'static, str> {
+    fn plural(_dt: &()) -> std::borrow::Cow<'static, str> {
         "nodes".into()
     }
 
-    fn api_version(dt: &()) -> std::borrow::Cow<'static, str> {
+    fn api_version(_dt: &()) -> std::borrow::Cow<'static, str> {
         "metrics.k8s.io/v1beta1".into()
     }
 
@@ -95,20 +92,6 @@ pub async fn fetch_node_metrics(client: &Client) -> HashMap<String, NodeMetrics>
         Err(e) => {
             tracing::error!("Failed to fetch metrics: {:?}", e);
             HashMap::new()
-        }
-    }
-}
-
-pub fn apply_metrics_to_node(node: &mut Node, metrics: Option<&NodeMetrics>) {
-    if let Some(metrics) = metrics {
-        // Create or get mutable status
-        if node.status.is_none() {
-            node.status = Some(k8s_openapi::api::core::v1::NodeStatus::default());
-        }
-        
-        if let Some(status) = &mut node.status {
-            // Store metrics in the allocatable field
-            status.allocatable = Some(metrics.usage.clone());
         }
     }
 }

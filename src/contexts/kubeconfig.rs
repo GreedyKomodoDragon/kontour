@@ -50,24 +50,6 @@ impl KubeconfigStorage {
             Err(KubeconfigError::StorageError("Failed to acquire storage lock".to_string()))
         }
     }
-
-    /// Remove kubeconfig file path by name
-    pub fn remove_file_path(&self, name: &str) -> KubeconfigResult<bool> {
-        if let Ok(mut storage) = self.storage.lock() {
-            Ok(storage.remove(name).is_some())
-        } else {
-            Err(KubeconfigError::StorageError("Failed to acquire storage lock".to_string()))
-        }
-    }
-
-    /// List all stored kubeconfig names
-    pub fn list_names(&self) -> KubeconfigResult<Vec<String>> {
-        if let Ok(storage) = self.storage.lock() {
-            Ok(storage.keys().cloned().collect())
-        } else {
-            Err(KubeconfigError::StorageError("Failed to acquire storage lock".to_string()))
-        }
-    }
 }
 
 /// Context for managing Kubernetes client reload
@@ -136,14 +118,5 @@ mod tests {
         storage.store_file_path("test".to_string(), "/path/to/test-config".to_string()).unwrap();
         let path = storage.get_file_path("test").unwrap();
         assert_eq!(path, Some("/path/to/test-config".to_string()));
-        
-        // Test listing names
-        let names = storage.list_names().unwrap();
-        assert!(names.contains(&"test".to_string()));
-        
-        // Test removing file path
-        assert!(storage.remove_file_path("test").unwrap());
-        let path = storage.get_file_path("test").unwrap();
-        assert_eq!(path, None);
     }
 }

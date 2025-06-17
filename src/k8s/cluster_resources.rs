@@ -1,11 +1,10 @@
 use dioxus::logger::tracing;
 use k8s_openapi::api::core::v1::Node;
 use k8s_openapi::apimachinery::pkg::{api::resource::Quantity, apis::meta::v1::ObjectMeta};
-use k8s_openapi::chrono;
 use kube::api::TypeMeta;
 use kube::{
     api::{Api, ListParams},
-    core::{ObjectList, Resource, ResourceExt},
+    core::{ObjectList, Resource},
     Client,
 };
 use serde::Deserialize;
@@ -13,8 +12,6 @@ use serde::Deserialize;
 #[derive(Deserialize, Clone, Debug)]
 struct NodeMetrics {
     metadata: ObjectMeta,
-    timestamp: String,
-    window: String,
     usage: std::collections::BTreeMap<String, Quantity>,
 }
 
@@ -22,23 +19,23 @@ impl Resource for NodeMetrics {
     type DynamicType = ();
     type Scope = kube::core::NamespaceResourceScope;
 
-    fn group(dt: &()) -> std::borrow::Cow<'static, str> {
+    fn group(_dt: &()) -> std::borrow::Cow<'static, str> {
         "metrics.k8s.io".into()
     }
     
-    fn version(dt: &()) -> std::borrow::Cow<'static, str> {
+    fn version(_dt: &()) -> std::borrow::Cow<'static, str> {
         "v1beta1".into()
     }
     
-    fn kind(dt: &()) -> std::borrow::Cow<'static, str> {
+    fn kind(_dt: &()) -> std::borrow::Cow<'static, str> {
         "NodeMetrics".into()
     }
     
-    fn plural(dt: &()) -> std::borrow::Cow<'static, str> {
+    fn plural(_dt: &()) -> std::borrow::Cow<'static, str> {
         "nodes".into()
     }
 
-    fn api_version(dt: &()) -> std::borrow::Cow<'static, str> {
+    fn api_version(_dt: &()) -> std::borrow::Cow<'static, str> {
         "metrics.k8s.io/v1beta1".into()
     }
 
@@ -55,7 +52,6 @@ impl Resource for NodeMetrics {
 pub struct ClusterStatus {
     pub status: String,        // "Healthy", "Warning", or "Critical"
     pub message: String,       // Details about the status
-    pub last_checked: String,  // Timestamp of last check
 }
 
 #[derive(Clone, Debug, Default)]
@@ -91,27 +87,6 @@ pub async fn get_cluster_resources(client: Client) -> ClusterResourceUsage {
             })
             .count();
     }
-
-    // Get pod counts and list for status check
-    let pod_list = match pods.list(&ListParams::default()).await {
-        Ok(list) => {
-            usage.pod_count = list.items.len();
-            usage.running_pods = list.items.iter()
-                .filter(|pod| {
-                    pod.status.as_ref()
-                        .and_then(|status| status.phase.as_ref())
-                        .map(|phase| phase == "Running")
-                        .unwrap_or(false)
-                })
-                .count();
-            list
-        },
-        Err(_) => ObjectList {
-            types: TypeMeta::default(),
-            metadata: k8s_openapi::apimachinery::pkg::apis::meta::v1::ListMeta::default(),
-            items: vec![],
-        },
-    };
 
     // Get all nodes and metrics
     let node_list = match nodes.list(&ListParams::default()).await {
@@ -234,7 +209,6 @@ fn calculate_cluster_status(
     let mut status = ClusterStatus {
         status: "Healthy".to_string(),
         message: "All systems operational".to_string(),
-        last_checked: chrono::Utc::now().to_rfc3339(),
     };
 
     // Check node health

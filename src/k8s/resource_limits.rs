@@ -102,7 +102,7 @@ pub async fn find_pods_without_limits(client: kube::Client) -> Vec<PodResourceIs
                     break;
                 }
             }
-            Err(e) => {
+            Err(_e) => {
                 break;
             }
         }

@@ -6,12 +6,6 @@ pub mod config {
     /// Directory to store persistent kubeconfig files
     pub const KUBECONFIG_STORAGE_DIR: &str = ".kontour/kubeconfigs";
     
-    /// Temporary file prefix for kubeconfig files
-    pub const TEMP_FILE_PREFIX: &str = "kubeconfig_";
-    
-    /// Temporary file extension
-    pub const TEMP_FILE_EXTENSION: &str = ".yaml";
-    
     /// Characters to replace in file names for safety
     pub const UNSAFE_FILENAME_CHARS: &[char] = &['/', '\\', ':'];
     
@@ -22,7 +16,7 @@ pub mod config {
 /// Utility functions for file operations
 pub mod file_utils {
     use super::config::*;
-    use std::path::{Path, PathBuf};
+    use std::path::{PathBuf};
     use std::fs;
     
     /// Get the kubeconfig storage directory path and create it if it doesn't exist
@@ -65,11 +59,6 @@ pub mod file_utils {
             })
             .collect::<String>()
     }
-    
-    /// Generate a temporary file name for a kubeconfig
-    pub fn generate_temp_filename(name: &str) -> String {
-        format!("{}{}{}", TEMP_FILE_PREFIX, sanitize_filename(name), TEMP_FILE_EXTENSION)
-    }
 }
 
 /// Utility functions for time and age calculations
@@ -109,7 +98,7 @@ pub mod time_utils {
 }
 
 // Re-export for backwards compatibility
-pub use time_utils::{calculate_age, calculate_age_from_time};
+pub use time_utils::{calculate_age_from_time};
 
 #[cfg(test)]
 mod tests {
@@ -119,12 +108,6 @@ mod tests {
     fn test_sanitize_filename() {
         assert_eq!(sanitize_filename("test/file\\name:with:unsafe"), "test_file_name_with_unsafe");
         assert_eq!(sanitize_filename("safe_filename"), "safe_filename");
-    }
-    
-    #[test]
-    fn test_generate_temp_filename() {
-        assert_eq!(generate_temp_filename("test"), "kubeconfig_test.yaml");
-        assert_eq!(generate_temp_filename("test/unsafe"), "kubeconfig_test_unsafe.yaml");
     }
     
     #[test]

@@ -7,7 +7,6 @@ struct PodData {
     name: String,
     namespace: String,
     status: String,
-    phase: String,
     age: String,
     ready_containers: (u32, u32), // (ready, total)
     restart_count: u32,
@@ -24,7 +23,6 @@ struct ContainerData {
     name: String,
     image: String,
     status: String,
-    restarts: u32,
     cpu_usage: f32,
     memory_usage: String,
     memory_limit: std::option::Option<Quantity>,
@@ -68,7 +66,6 @@ pub fn PodItem(props: PodItemProps) -> Element {
         name: props.pod.metadata.name.clone().unwrap(),
         namespace: props.pod.metadata.namespace.clone().unwrap(),
         status: props.pod.status.clone().unwrap().phase.unwrap_or_default(),
-        phase: props.pod.status.clone().unwrap().phase.unwrap_or_default(),
         age: "1h".to_string(), // Placeholder for age
         ready_containers: {
             let total = props.pod
@@ -104,7 +101,6 @@ pub fn PodItem(props: PodItemProps) -> Element {
                             name: c.name.clone(),
                             image: c.image.clone().unwrap_or_default(),
                             status: "Unknown".to_string(), // Placeholder
-                            restarts: 0,                   // Placeholder
                             cpu_usage: 0.0,                // Placeholder
                             memory_usage: "12Mi".to_string(), // Placeholder
                             memory_limit: c

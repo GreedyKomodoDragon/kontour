@@ -5,9 +5,8 @@ mod namespace_item;
 pub use namespace_item::{NamespaceItem, ResourceQuota, LimitRange, NamespaceItemProps};
 
 mod node_item;
-pub use node_item::{NodeItem, NodeItemProps, NodeCondition};
+pub use node_item::{NodeItem, NodeCondition};
 
-mod hero;
 pub mod kubeconfig_name_dialog;
 
 mod pod_item;

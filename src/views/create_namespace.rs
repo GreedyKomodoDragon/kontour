@@ -83,59 +83,59 @@ pub fn CreateNamespace() -> Element {
         document::Link { rel: "stylesheet", href: CREATE_FORMS_CSS }
 
         div { class: "create-namespace-container",
-            div { class: "create-namespace-header",
-                h1 { "Create Namespace" }
-            }
+            h1 { class: "create-namespace-title", "Create Namespace" }
 
-            form { class: "create-namespace-form", onsubmit: create_namespace,
-                div { class: "form-group",
-                    label { "Name" }
-                    input {
-                        r#type: "text",
-                        class: "form-control",
-                        value: "{name}",
-                        onchange: move |evt| name.set(evt.value().clone()),
-                        required: true,
-                        placeholder: "my-namespace"
+            form { onsubmit: create_namespace,
+                div { class: "form-grid",
+                    div { class: "form-group",
+                        label { class: "form-label", "Name" }
+                        input {
+                            r#type: "text",
+                            class: "form-input",
+                            value: "{name}",
+                            onchange: move |evt| name.set(evt.value().clone()),
+                            required: true,
+                            placeholder: "my-namespace"
+                        }
+                        span { class: "form-help", "Name must consist of lowercase letters, numbers, and hyphens" }
                     }
-                    span { class: "help-text", "Name must consist of lowercase letters, numbers, and hyphens" }
-                }
 
-                div { class: "form-group",
-                    label { "Labels" }
-                    div { class: "labels-container",
-                        {labels.read().iter().enumerate().map(|(index, (key, value))| (
-                            rsx! {
-                                div { class: "label-group",
-                                    input {
-                                        r#type: "text",
-                                        class: "form-control",
-                                        value: "{key}",
-                                        onchange: move |evt| update_label(index, true, evt.value().clone()),
-                                        placeholder: "key"
-                                    }
-                                    input {
-                                        r#type: "text",
-                                        class: "form-control",
-                                        value: "{value}",
-                                        onchange: move |evt| update_label(index, false, evt.value().clone()),
-                                        placeholder: "value"
-                                    }
-                                    button {
-                                        r#type: "button",
-                                        class: "btn btn-danger",
-                                        onclick: move |_| remove_label(index),
-                                        "Remove"
+                    div { class: "form-group",
+                        label { class: "form-label", "Labels" }
+                        div { class: "labels-container",
+                            {labels.read().iter().enumerate().map(|(index, (key, value))| (
+                                rsx! {
+                                    div { class: "label-group",
+                                        input {
+                                            r#type: "text",
+                                            class: "form-input",
+                                            value: "{key}",
+                                            onchange: move |evt| update_label(index, true, evt.value().clone()),
+                                            placeholder: "key"
+                                        }
+                                        input {
+                                            r#type: "text",
+                                            class: "form-input",
+                                            value: "{value}",
+                                            onchange: move |evt| update_label(index, false, evt.value().clone()),
+                                            placeholder: "value"
+                                        }
+                                        button {
+                                            r#type: "button",
+                                            class: "create-form-btn create-form-btn-secondary",
+                                            onclick: move |_| remove_label(index),
+                                            "Remove"
+                                        }
                                     }
                                 }
-                            }
-                        ))}
-                    }
-                    button {
-                        r#type: "button",
-                        class: "btn btn-secondary",
-                        onclick: add_label,
-                        "Add Label"
+                            ))}
+                        }
+                        button {
+                            r#type: "button",
+                            class: "create-form-btn create-form-btn-secondary",
+                            onclick: add_label,
+                            "Add Label"
+                        }
                     }
                 }
 
@@ -145,18 +145,18 @@ pub fn CreateNamespace() -> Element {
                     }
                 }
 
-                div { class: "form-actions",
+                div { class: "button-group",
                     button {
                         r#type: "submit",
-                        class: "btn btn-primary",
+                        class: "create-form-btn create-form-btn-primary",
                         disabled: "{is_submitting}",
                         if *is_submitting.read() { "Creating..." } else { "Create Namespace" }
                     }
                     button {
                         r#type: "button",
-                        class: "btn btn-secondary",
+                        class: "create-form-btn create-form-btn-secondary",
                         onclick: move |_| {
-                            use_router().push("/namespaces");
+                            router().push("/namespaces");
                         },
                         "Cancel"
                     }

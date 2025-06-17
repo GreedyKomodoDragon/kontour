@@ -9,8 +9,6 @@ struct DeploymentData {
     age: String,
     ready_replicas: i32,
     desired_replicas: i32,
-    available_replicas: i32,
-    updated_replicas: i32,
     status: String,
     labels: Vec<(String, String)>,
     selector: Vec<(String, String)>,
@@ -46,8 +44,6 @@ pub fn DeploymentItem(props: DeploymentItemProps) -> Element {
         age: "1h".to_string(), // TODO: Calculate age
         ready_replicas: props.deployment.status.as_ref().map_or(0, |s| s.ready_replicas.unwrap_or(0)),
         desired_replicas: props.deployment.spec.as_ref().map_or(0, |s| s.replicas.unwrap_or(0)),
-        available_replicas: props.deployment.status.as_ref().map_or(0, |s| s.available_replicas.unwrap_or(0)),
-        updated_replicas: props.deployment.status.as_ref().map_or(0, |s| s.updated_replicas.unwrap_or(0)),
         status: {
             let conditions = props.deployment.status.as_ref()
                 .and_then(|s| s.conditions.as_ref())

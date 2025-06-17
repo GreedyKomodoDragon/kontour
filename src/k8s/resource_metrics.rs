@@ -1,11 +1,10 @@
-use dioxus::{html::tr, logger::tracing};
+use dioxus::{logger::tracing};
 use k8s_openapi::api::core::v1::Pod;
 use k8s_openapi::apimachinery::pkg::api::resource::Quantity;
 use k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta;
 use kube::{
     api::{Api, ListParams},
-    core::ObjectList,
-    Resource, ResourceExt,
+    Resource,
 };
 use serde::Deserialize;
 
@@ -27,7 +26,6 @@ struct MetricsContainerUsage {
 
 #[derive(Deserialize, Clone, Debug)]
 struct MetricsContainer {
-    name: String,
     usage: MetricsContainerUsage,
 }
 
@@ -37,31 +35,29 @@ struct PodMetrics {
     metadata: ObjectMeta,
     #[serde(default)]
     containers: Vec<MetricsContainer>,
-    timestamp: String,
-    window: String,
 }
 
 impl Resource for PodMetrics {
     type DynamicType = ();
     type Scope = kube::core::NamespaceResourceScope;
 
-    fn group(dt: &()) -> std::borrow::Cow<'static, str> {
+    fn group(_dt: &()) -> std::borrow::Cow<'static, str> {
         "metrics.k8s.io".into()
     }
     
-    fn version(dt: &()) -> std::borrow::Cow<'static, str> {
+    fn version(_dt: &()) -> std::borrow::Cow<'static, str> {
         "v1beta1".into()
     }
     
-    fn kind(dt: &()) -> std::borrow::Cow<'static, str> {
+    fn kind(_dt: &()) -> std::borrow::Cow<'static, str> {
         "PodMetrics".into()
     }
     
-    fn plural(dt: &()) -> std::borrow::Cow<'static, str> {
+    fn plural(_dt: &()) -> std::borrow::Cow<'static, str> {
         "pods".into()
     }
 
-    fn api_version(dt: &()) -> std::borrow::Cow<'static, str> {
+    fn api_version(_dt: &()) -> std::borrow::Cow<'static, str> {
         "metrics.k8s.io/v1beta1".into()
     }
 

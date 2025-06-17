@@ -1,7 +1,6 @@
 use dioxus::{logger::tracing, prelude::*};
 use k8s_openapi::api::core::v1::Service;
 use kube::{api::ListParams, Api, Client};
-use std::collections::HashSet;
 
 use crate::components::{NamespaceSelector, StatusSelector, SearchInput, ServiceItem};
 
@@ -102,17 +101,6 @@ pub fn Services() -> Element {
             }
         }
     };
-
-    // --- Unique Service Types for Filter ---
-    let service_types = use_memo(move || {
-        let mut types: Vec<String> = services.read().iter()
-            .filter_map(|s| s.spec.as_ref()?.type_.clone())
-            .collect::<HashSet<_>>()
-            .into_iter()
-            .collect();
-        types.sort();
-        types
-    });
 
     rsx! {
         document::Link { rel: "stylesheet", href: SERVICES_CSS }

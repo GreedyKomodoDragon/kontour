@@ -154,6 +154,7 @@ pub fn SecretItem(props: SecretItemProps) -> Element {
                             div { class: "data-grid",
                                 {data_keys.iter().map(|key| {
                                     let key = key.clone();
+                                    let key_for_closure = key.clone();
                                     let is_revealed = revealed_keys.read().contains(&key);
                                     let decoded_value = if is_revealed {
                                         props.secret.data.as_ref()
@@ -176,10 +177,10 @@ pub fn SecretItem(props: SecretItemProps) -> Element {
                                                     onclick: move |evt| {
                                                         evt.stop_propagation();
                                                         let mut keys = revealed_keys.write();
-                                                        if keys.contains(&key) {
-                                                            keys.remove(&key);
+                                                        if keys.contains(&key_for_closure) {
+                                                            keys.remove(&key_for_closure);
                                                         } else {
-                                                            keys.insert(key.clone());
+                                                            keys.insert(key_for_closure.clone());
                                                         }
                                                     },
                                                     title: if is_revealed { "Hide Value" } else { "Show Value" },

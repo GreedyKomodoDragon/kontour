@@ -1,7 +1,13 @@
 /* Common styles for all creation pages */
 
 /* Container styles */
-.create-container {
+.create-container,
+.create-namespace-container,
+.create-pod-container,
+.create-deployment-container,
+.create-daemonset-container,
+.create-statefulset-container,
+.create-cronjob-container {
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
@@ -34,6 +40,14 @@
     width: 100%;
 }
 
+.form-group label {
+    display: block;
+    color: #e5e5e5;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
 .form-label {
     display: block;
     color: #e5e5e5;
@@ -42,7 +56,7 @@
     font-size: 0.95rem;
 }
 
-.form-input, select.form-input {
+.form-input, select.form-input, .form-control {
     width: 100%;
     padding: 0.75rem 1rem;
     border: 1px solid #4a5568;
@@ -55,7 +69,7 @@
     box-sizing: border-box;
 }
 
-.form-input:focus {
+.form-input:focus, .form-control:focus {
     outline: none;
     border-color: #4a9eff;
     box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.1);
@@ -125,6 +139,22 @@
     opacity: 0.8;
 }
 
+/* Label management styles */
+.labels-container {
+    margin-bottom: 1rem;
+}
+
+.label-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    align-items: center;
+}
+
+.label-group .form-input {
+    flex: 1;
+}
+
 /* Buttons */
 .button-group {
     max-width: 1000px;
@@ -144,6 +174,9 @@
     cursor: pointer;
     transition: background-color 0.2s;
     font-size: 0.95rem;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
 }
 
 .create-form-btn-primary {
@@ -155,6 +188,11 @@
     background: #2563eb;
 }
 
+.create-form-btn-primary:disabled {
+    background: #6b7280;
+    cursor: not-allowed;
+}
+
 .create-form-btn-secondary {
     background: rgba(255, 255, 255, 0.1);
     color: white;
@@ -162,6 +200,15 @@
 
 .create-form-btn-secondary:hover {
     background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-danger {
+    background: #dc2626;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
 }
 
 /* Error message */
@@ -174,10 +221,11 @@
     color: #f85149;
     border-radius: 6px;
     font-size: 0.95rem;
+    margin-bottom: 1rem;
 }
 
 /* Help text */
-.form-help {
+.form-help, .help-text {
     font-size: 0.875rem;
     color: rgba(229, 229, 229, 0.7);
     margin-top: 0.25rem;
