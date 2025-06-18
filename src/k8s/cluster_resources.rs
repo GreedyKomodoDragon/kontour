@@ -159,15 +159,31 @@ pub async fn get_cluster_resources(client: Client) -> ClusterResourceUsage {
         }
     }
 
-    // Calculate cluster status
-    usage.cluster_status = calculate_cluster_status(&node_list.items, &match pods.list(&ListParams::default()).await {
+    // Get pod counts
+    let pod_list = match pods.list(&ListParams::default()).await {
         Ok(list) => list,
         Err(_) => ObjectList {
             types: TypeMeta::default(),
             metadata: k8s_openapi::apimachinery::pkg::apis::meta::v1::ListMeta::default(),
             items: vec![],
         },
-    }.items, &usage);
+    };
+
+    // Count total pods and running pods
+    usage.pod_count = pod_list.items.len();
+    usage.running_pods = pod_list.items.iter()
+        .filter(|pod| {
+            pod.status.as_ref()
+                .and_then(|status| status.phase.as_ref())
+                .map(|phase| phase == "Running")
+                .unwrap_or(false)
+        })
+        .count();
+
+    tracing::debug!("Pod counts: {}/{} (running/total)", usage.running_pods, usage.pod_count);
+
+    // Calculate cluster status
+    usage.cluster_status = calculate_cluster_status(&node_list.items, &pod_list.items, &usage);
 
     usage
 }

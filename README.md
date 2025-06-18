@@ -27,20 +27,16 @@ A powerful, desktop-based Kubernetes management tool built with Rust and Dioxus.
 ### Installation
 
 1. Clone the repository
+
 2. Install dependencies:
 ```bash
 cargo build
 npm install
 ```
 
-3. Start the Tailwind CSS compiler:
+3. Run the application:
 ```bash
-npx tailwindcss -i ./input.css -o ./assets/tailwind.css --watch
-```
-
-4. Run the application:
-```bash
-dx serve --platform desktop
+dx serve
 ```
 
 ## 🛠 Development
