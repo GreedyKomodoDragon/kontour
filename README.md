@@ -1,6 +1,6 @@
 # Kontour - Modern Kubernetes Desktop Manager
 
-A powerful, desktop-based Kubernetes management tool built with Rust and Dioxus. Kontour provides a modern, intuitive interface for managing your Kubernetes clusters with native performance and reliability.
+A powerful, desktop-based Kubernetes management tool built with Rust and Dioxus. Kontour provides a modern, intuitive interface for managing your Kubernetes clusters with performance and reliability.
 
 ![Kontour UI](images/kontourui.png)
 
@@ -80,7 +80,7 @@ dx serve
 ### Tech Stack
 - **Frontend**: [Dioxus](https://dioxuslabs.com/) - Rust-based UI framework
 - **Kubernetes API**: [kube-rs](https://kube.rs/) - Rust Kubernetes client library
-- **Desktop**: Dioxus Desktop with native window management
+- **Desktop**: Dioxus Desktop with window management
 - **Styling**: Custom CSS with dark theme design
 
 ### Project Structure
